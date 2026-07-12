@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الجلسة الأولى — عقلية الـ Production + HR Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="deck">
+
+  <div class="topbar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <main class="slides" id="slides">
+
+    <!-- 1: Title -->
+    <section class="slide active title-slide">
+      <div class="slide-card">
+        <span class="eyebrow">دورة n8n المتقدمة</span>
+        <h1>الجلسة الأولى</h1>
+        <div class="title-accent-bar"></div>
+        <p class="subtitle">عقلية الـ Production + بداية بناء نظام HR Onboarding</p>
+        <p class="meta-line">من Workflows تعمل، إلى Systems تصمد</p>
+      </div>
+    </section>
+
+    <!-- 2: Agenda -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">خطة الجلسة</span>
+        <h2>ماذا سنغطي اليوم؟</h2>
+        <ul class="agenda-list">
+          <li>
+            <span class="agenda-part">الجزء الأول</span>
+            <span class="agenda-text">نظري: عقلية الـ Production، الـ Expressions المتقدمة، الـ Error Handling، الـ Idempotency، وCredentials hygiene.</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء الثاني</span>
+            <span class="agenda-text">تطبيقي: بناء الجزء الأول من نظام HR Onboarding Engine خطوة بخطوة.</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء الثالث</span>
+            <span class="agenda-text">الواجب، مواضيع الجلسة القادمة، ثم Quiz تفاعلي من 6 أسئلة.</span>
+          </li>
+        </ul>
+        <div class="why-box">
+          <span class="why-title">ملاحظة</span>
+          <p>مدة الجلسة الرسمية ساعة واحدة، لكن هذا الملف التفاعلي يغطي محتوى أوسع (~ساعة ونصف) ليكون مرجعًا للمراجعة الذاتية بعد الجلسة.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3: Production mindset - definition -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · النظرية</span>
+        <h2><span class="en">"Workflows that work"</span> مقابل <span class="en">"Systems that survive"</span></h2>
+        <p>الفرق الحقيقي ليس في قدرة الـ Workflow على النجاح في أول تشغيل، بل في قدرته على الصمود عند تكرار التشغيل، أو فشل API خارجي، أو وصول بيانات غير متوقعة.</p>
+        <div class="why-box">
+          <span class="why-title">لماذا يهم في الـ Production؟</span>
+          <p>لأن أي Workflow حقيقي سيُشغَّل آلاف المرات، وسيواجه حتمًا Webhook مكررًا، أو API بطيئًا، أو حقلًا فارغًا — والفرق بين النوعين لا يظهر إلا تحت هذا الضغط.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4: Production mindset - example -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · النظرية</span>
+        <h2>مثال ملموس</h2>
+        <p>Workflow لإرسال بريد ترحيبي يعمل تمامًا في أول اختبار. لكن الخدمة الخارجية التي تُشغّل الـ Webhook تُعيد إرساله تلقائيًا عند أي تأخير في الرد (retry behavior افتراضي)، فيُشغَّل نفس الـ Workflow مرتين، ثم عشرين مرة، حتى تصل النتيجة إلى إرسال 200 بريد إلكتروني مكرر لنفس الموظف.</p>
+        <div class="takeaway-box">
+          <span class="why-title">الخلاصة</span>
+          <p>الـ Workflow نجح تقنيًا في كل مرة — لكن النظام فشل. هذا بالضبط الفرق بين <span class="en" style="direction:ltr;display:inline-block;">workflow that works</span> و<span class="en" style="direction:ltr;display:inline-block;">system that survives</span>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5: Expressions intro + $json -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Expressions المتقدمة</span>
+        <h2>التعبيرات المتقدمة في n8n</h2>
+        <p class="lead">الـ Expressions هي الجسر بين الـ Nodes، وإتقانها يحدد مدى مرونة الـ Workflow بالكامل. نبدأ بأبسطها وأكثرها استخدامًا.</p>
+        <div class="expr-block">
+          <h3><span class="en">$json</span> — بيانات العنصر الحالي</h3>
+          <p class="expr-def">يشير <code>$json</code> إلى بيانات الـ item الحالي كما وصلت إلى هذه الـ Node تحديدًا.</p>
+          <div class="before-after">
+            <div class="example-card before">
+              <span class="card-label">قبل (البيانات الواردة)</span>
+              <div class="code-block">{ "name": "Sara", "email": "sara@example.com" }</div>
+            </div>
+            <div class="example-card after">
+              <span class="card-label">بعد (الاستخدام)</span>
+              <div class="code-block">{{ $json.email }}<br><span class="arrow-result">→ sara@example.com</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6: $node + $items() -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Expressions المتقدمة</span>
+        <h2>الوصول لعقدة أخرى وحساب عدد العناصر</h2>
+
+        <div class="expr-block">
+          <h3><span class="en">$node["NodeName"].json</span></h3>
+          <p class="expr-def">يسمح بجلب بيانات عقدة سابقة محددة بالاسم، وليس فقط العقدة التي تسبق الحالية مباشرة.</p>
+          <div class="before-after">
+            <div class="example-card before">
+              <span class="card-label">قبل</span>
+              <p style="margin:0;font-size:0.98rem;">عقدة باسم <code>Get Manager</code> أرجعت:</p>
+              <div class="code-block">{ "managerEmail": "ali@corp.com" }</div>
+            </div>
+            <div class="example-card after">
+              <span class="card-label">بعد</span>
+              <div class="code-block">{{ $node["Get Manager"].json.managerEmail }}<br><span class="arrow-result">→ ali@corp.com</span></div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="expr-block">
+          <h3><span class="en">$items()</span></h3>
+          <p class="expr-def">يُرجع كل الـ items التي وصلت للعقدة الحالية — مفيد لمعرفة العدد الكلي أو المعالجة الجماعية.</p>
+          <div class="before-after">
+            <div class="example-card before">
+              <span class="card-label">قبل</span>
+              <p style="margin:0;font-size:0.98rem;">5 عناصر (موظفين) وصلت للعقدة الحالية</p>
+            </div>
+            <div class="example-card after">
+              <span class="card-label">بعد</span>
+              <div class="code-block">{{ $items().length }}<br><span class="arrow-result">→ 5</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7: $now + Luxon -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Expressions المتقدمة</span>
+        <h2><span class="en">$now</span> وحساب التواريخ عبر <span class="en">Luxon</span></h2>
+        <p class="expr-def">‏<code>$now</code> هو كائن <span class="en" style="direction:ltr;display:inline-block;">Luxon DateTime</span> يمثل الوقت الحالي، ويدعم دوال حساب التواريخ مباشرة (جمع، طرح، تنسيق).</p>
+        <div class="before-after">
+          <div class="example-card before">
+            <span class="card-label">قبل</span>
+            <p style="margin:0;font-size:0.98rem;">نريد تاريخ تجهيز الحساب قبل تاريخ الالتحاق بثلاثة أيام</p>
+          </div>
+          <div class="example-card after">
+            <span class="card-label">بعد</span>
+            <div class="code-block">{{ $now.plus({ days: 3 }).toFormat('yyyy-MM-dd') }}</div>
+          </div>
+        </div>
+        <div class="why-box">
+          <span class="why-title">لماذا يهم في الـ Production؟</span>
+          <p>بدون Luxon ستحتاج لكتابة منطق تواريخ يدوي عرضة للأخطاء، خصوصًا مع فروقات التوقيت (timezones) — موضوع سنعود له بالتفصيل في الجلسة القادمة.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8: ternary + optional chaining -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Expressions المتقدمة</span>
+        <h2><span class="en">Ternary</span> و<span class="en">Optional Chaining</span></h2>
+
+        <div class="expr-block">
+          <h3>Ternary</h3>
+          <p class="expr-def">تعبير شرطي مختصر بصيغة <code>condition ? valueIfTrue : valueIfFalse</code> بدل كتابة جملة <code>if</code> كاملة.</p>
+          <div class="before-after">
+            <div class="example-card before">
+              <span class="card-label">قبل</span>
+              <p style="margin:0;font-size:0.98rem;">‏<code>$json.department</code> قد تكون فارغة</p>
+            </div>
+            <div class="example-card after">
+              <span class="card-label">بعد</span>
+              <div class="code-block">{{ $json.department ? $json.department : 'غير محدد' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="expr-block">
+          <h3>Optional Chaining (<span class="en">?.</span>)</h3>
+          <p class="expr-def">يمنع توقف الـ Workflow بخطأ عندما يكون أحد الحقول الوسيطة غير موجود (<span class="en" style="direction:ltr;display:inline-block;">null/undefined</span>).</p>
+          <div class="before-after">
+            <div class="example-card before">
+              <span class="card-label">قبل (بدون ?.)</span>
+              <div class="code-block">{{ $json.manager.email }}<br><span class="arrow-result">→ خطأ إذا manager غير موجودة</span></div>
+            </div>
+            <div class="example-card after">
+              <span class="card-label">بعد (مع ?.)</span>
+              <div class="code-block">{{ $json.manager?.email }}<br><span class="arrow-result">→ undefined بدل توقف التنفيذ</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9: Error handling intro -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Error Handling</span>
+        <h2>الـ Error Handling كجزء من التصميم، وليس ترقيعًا لاحقًا</h2>
+        <p class="lead">في نظام Production نحتاج لأكثر من آلية واحدة، وكل آلية تُستخدم في موقف مختلف تمامًا.</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3><span class="en">Error Trigger Workflow</span></h3>
+            <p>Workflow منفصل يحتوي عقدة <span class="en" style="direction:ltr;display:inline-block;">Error Trigger</span>، يُربط كـ Error Workflow لأي workflow آخر، فيلتقط أي فشل غير متوقع تلقائيًا.</p>
+            <span class="example-label">مثال</span>
+            <p>‏workflow الـ onboarding يفشل بسبب انقطاع اتصال بـ Google API ← الـ Error Trigger workflow يُشغَّل تلقائيًا ويرسل تنبيهًا لفريق الـ IT.</p>
+          </div>
+          <div class="compare-card">
+            <h3><span class="en">Continue On Fail</span></h3>
+            <p>إعداد على مستوى الـ Node الواحدة يجعل تنفيذ الـ workflow يكمل حتى لو فشلت هذه العقدة تحديدًا، بدل توقف كل شيء.</p>
+            <span class="example-label">مثال</span>
+            <p>عقدة إرسال بريد الترحيب تفشل لموظف واحد بسبب بريد خاطئ ← باقي الموظفين في نفس التشغيل الجماعي يكملون بشكل طبيعي.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10: Retry with backoff -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Error Handling</span>
+        <h2><span class="en">Retry with Backoff</span> على عقد <span class="en">HTTP Request</span></h2>
+        <p>إعادة محاولة الطلب تلقائيًا عند الفشل، مع فاصل زمني متزايد بين كل محاولة، بدل إعادتها فورًا وبشكل متكرر.</p>
+        <p>مثال: عقدة HTTP Request تنشئ حساب بريد للموظف عبر API خارجي، مضبوطة على 3 محاولات بفاصل يبدأ من 2 ثانية ويتضاعف في كل مرة. إذا كان الـ API بطيئًا مؤقتًا، تنجح المحاولة الثانية أو الثالثة بدل فشل الـ workflow بالكامل.</p>
+        <div class="why-box">
+          <span class="why-title">لماذا يهم في الـ Production؟</span>
+          <p>بدون backoff، إعادة المحاولة الفورية والمتكررة قد تُحمّل الـ API المتعثر أصلًا بضغط إضافي، وأحيانًا تُفعّل rate limiting وتزيد الوضع سوءًا.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11: Decision table -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Error Handling</span>
+        <h2>متى <span class="en">Retry</span>؟ ومتى لا؟ — جدول القرار</h2>
+        <table class="decision-table">
+          <thead>
+            <tr>
+              <th>الموقف</th>
+              <th>الإجراء الصحيح</th>
+              <th>السبب</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>API يرجع <span class="en">503 Service Unavailable</span></td>
+              <td><span class="tag retry">Retry with backoff</span></td>
+              <td>خطأ مؤقت (transient) — النظام الخارجي سيتعافى غالبًا خلال ثوانٍ.</td>
+            </tr>
+            <tr>
+              <td>بيانات إدخال غير صالحة (invalid input)</td>
+              <td><span class="tag no-retry">بدون Retry — توجيه لمراجعة</span></td>
+              <td>الخطأ منطقي وسيتكرر مهما أعدنا المحاولة؛ يحتاج تصحيح بيانات أو تدخل بشري.</td>
+            </tr>
+            <tr>
+              <td>API يرجع <span class="en">429 Too Many Requests</span></td>
+              <td><span class="tag retry">Retry with backoff (فاصل أطول)</span></td>
+              <td>تجاوزنا rate limit مؤقتًا، والانتظار يحل المشكلة تلقائيًا.</td>
+            </tr>
+            <tr>
+              <td>خطأ Authentication / <span class="en">401</span></td>
+              <td><span class="tag no-retry">بدون Retry — تنبيه فوري</span></td>
+              <td>إعادة المحاولة لن تُصلح credential منتهي أو خاطئ؛ يحتاج تدخل فوري.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 12: Idempotency definition -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Idempotency</span>
+        <h2>لماذا يجب أن يتحمّل الـ Workflow التشغيل مرتين؟</h2>
+        <p>عملية <span class="en" style="direction:ltr;display:inline-block;">Idempotent</span> هي عملية تُنتج نفس النتيجة النهائية سواء نُفذت مرة واحدة أو عدة مرات بنفس المدخلات.</p>
+        <div class="why-box">
+          <span class="why-title">لماذا يهم في الـ Production؟</span>
+          <p>في n8n، الـ Webhook قد يُعاد إرساله من الخدمة المرسلة، والمستخدم قد يضغط submit مرتين، وأنت شخصيًا قد تُعيد تشغيل execution فاشلة يدويًا — وفي كل هذه الحالات، بدون Idempotency ستتكرر الآثار الجانبية (duplicate side effects).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13: Idempotency example -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Idempotency</span>
+        <h2>مثال: نظام <span class="en">HR Onboarding</span></h2>
+        <p>قبل إنشاء أي حساب، نتحقق أولًا: هل يوجد بالفعل سجل بنفس الـ email في جدول الـ Google Sheets الذي نتتبع فيه حالة كل موظف؟</p>
+        <div class="wrong-right">
+          <div class="wr-row wrong">
+            <span class="wr-mark">✕</span>
+            <div class="wr-text"><strong>بدون فحص:</strong> كل تشغيل — حتى المكرر — يؤدي لإنشاء حساب بريد جديد + Drive folder جديد.</div>
+          </div>
+          <div class="wr-row right">
+            <span class="wr-mark">✓</span>
+            <div class="wr-text"><strong>مع فحص Idempotency:</strong> تشغيل مكرر لنفس الموظف ← البحث في Sheets يجد سجلًا موجودًا ← نتخطى خطوات الإنشاء أو نُحدّث السجل الحالي فقط.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14: Credentials hygiene definition -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Credentials Hygiene</span>
+        <h2>Credentials Hygiene</h2>
+        <p>إدارة الـ API keys والـ tokens بطريقة آمنة: تخزين مشفّر، صلاحيات محدودة (least-privilege scopes)، وعدم كتابتها داخل الكود مباشرة.</p>
+        <div class="why-box">
+          <span class="why-title">لماذا يهم في الـ Production؟</span>
+          <p>أي Code node أو Sticky Note يحتوي على token مكشوف يتحول لثغرة أمنية فور مشاركة الـ workflow أو رفعه لأي مكان — والصلاحيات الواسعة تعني أن أي اختراق صغير قد يتحول لكارثة كبيرة.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15: Credentials example -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الأول · Credentials Hygiene</span>
+        <h2>الطريقة الخاطئة مقابل الصحيحة</h2>
+        <div class="wrong-right">
+          <div class="wr-row wrong">
+            <span class="wr-mark">✕</span>
+            <div class="wr-text">
+              كتابة الـ API token كنص مباشر داخل Code node:
+              <div class="code-block">const token = "sk-live-abc123...";<br>fetch(url, { headers: { Authorization: token } });</div>
+            </div>
+          </div>
+          <div class="wr-row right">
+            <span class="wr-mark">✓</span>
+            <div class="wr-text">حفظ الـ token داخل الـ Credentials المشفّرة في n8n (Credentials store)، وربطه بالـ node عبر الواجهة، مع تفعيل أضيق الصلاحيات الممكنة فقط — مثلًا: Google OAuth Scope لإنشاء ملفات في Drive فقط، وليس صلاحية كاملة على الحساب.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16: System diagram -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الثاني · البناء</span>
+        <h2>نظرة عامة: نظام <span class="en">HR Onboarding Engine</span></h2>
+        <p class="lead">نبني اليوم الجزء الأول من نظام أكبر — من الـ intake حتى الـ Notifications. خطوة الـ Approval (بالحدود المتقطعة) ستُضاف في الجلسة القادمة.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="مخطط تدفق نظام HR Onboarding">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+
+            <!-- Intake -->
+            <rect x="320" y="20" width="260" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="450" y="45" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Form / Webhook Intake</text>
+            <text x="450" y="65" text-anchor="middle" font-size="12" fill="#64748b">استقبال بيانات الموظف الجديد</text>
+
+            <line x1="450" y1="80" x2="450" y2="105" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow)"></line>
+
+            <!-- Validation -->
+            <rect x="320" y="110" width="260" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="450" y="135" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Validation</text>
+            <text x="450" y="155" text-anchor="middle" font-size="12" fill="#64748b">التحقق من صحة البيانات</text>
+
+            <line x1="450" y1="170" x2="450" y2="200" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow)"></line>
+
+            <!-- Approval (future, dashed) -->
+            <rect x="320" y="205" width="260" height="60" rx="12" fill="#fbfcfd" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 5"></rect>
+            <text x="450" y="230" text-anchor="middle" font-size="15" font-weight="700" fill="#475569">Approval (Wait Node)</text>
+            <text x="450" y="250" text-anchor="middle" font-size="12" fill="#94a3b8">الموافقة — الجلسة القادمة</text>
+
+            <line x1="450" y1="265" x2="450" y2="300" stroke="#0d9488" stroke-width="2"></line>
+            <text x="450" y="298" text-anchor="middle" font-size="12" fill="#64748b" style="font-weight:700;">توزيع متوازٍ · Provisioning fan-out</text>
+
+            <!-- fan-out bus -->
+            <line x1="135" y1="310" x2="765" y2="310" stroke="#0d9488" stroke-width="2"></line>
+            <line x1="135" y1="310" x2="135" y2="320" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow)"></line>
+            <line x1="345" y1="310" x2="345" y2="320" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow)"></line>
+            <line x1="555" y1="310" x2="555" y2="320" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow)"></line>
+            <line x1="765" y1="310" x2="765" y2="320" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow)"></line>
+
+            <!-- 4 fan-out boxes -->
+            <rect x="40" y="320" width="190" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="135" y="345" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Email Account</text>
+            <text x="135" y="364" text-anchor="middle" font-size="11" fill="#64748b">إنشاء حساب البريد</text>
+
+            <rect x="250" y="320" width="190" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="345" y="345" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Drive Folder</text>
+            <text x="345" y="364" text-anchor="middle" font-size="11" fill="#64748b">من Template جاهز</text>
+
+            <rect x="460" y="320" width="190" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="555" y="345" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Welcome Doc</text>
+            <text x="555" y="364" text-anchor="middle" font-size="11" fill="#64748b">توليد وثيقة الترحيب</text>
+
+            <rect x="670" y="320" width="190" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="765" y="345" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Calendar Events</text>
+            <text x="765" y="364" text-anchor="middle" font-size="11" fill="#64748b">إنشاء أحداث التقويم</text>
+
+            <!-- convergence -->
+            <line x1="135" y1="380" x2="135" y2="410" stroke="#0d9488" stroke-width="2"></line>
+            <line x1="345" y1="380" x2="345" y2="410" stroke="#0d9488" stroke-width="2"></line>
+            <line x1="555" y1="380" x2="555" y2="410" stroke="#0d9488" stroke-width="2"></line>
+            <line x1="765" y1="380" x2="765" y2="410" stroke="#0d9488" stroke-width="2"></line>
+            <line x1="135" y1="410" x2="765" y2="410" stroke="#0d9488" stroke-width="2"></line>
+            <line x1="450" y1="410" x2="450" y2="440" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow)"></line>
+
+            <!-- Notifications -->
+            <rect x="320" y="440" width="260" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="450" y="465" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Notifications</text>
+            <text x="450" y="485" text-anchor="middle" font-size="12" fill="#64748b">إشعار المدير وفريق الـ IT</text>
+          </svg>
+        </div>
+        <p class="diagram-note">الحدود المتقطعة = خطوة تُبنى في الجلسة القادمة</p>
+      </div>
+    </section>
+
+    <!-- 17: intake node config -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الثاني · خطوة البناء 1</span>
+        <h2>إعداد الـ <span class="en">Intake</span></h2>
+        <p>نبدأ بـ <span class="en" style="direction:ltr;display:inline-block;">Form Trigger</span> (أو Webhook إذا كان الإدخال من نظام خارجي مثل ATS). الحقول المطلوبة في هذه المرحلة:</p>
+        <ul>
+          <li>الاسم الكامل للموظف</li>
+          <li>البريد الشخصي (personal email)</li>
+          <li>القسم (department)</li>
+          <li>تاريخ الالتحاق (start date)</li>
+          <li>بريد المدير المباشر (manager email)</li>
+        </ul>
+        <div class="why-box">
+          <span class="why-title">لماذا Form وليس Webhook هنا؟</span>
+          <p>‏Form Trigger أنسب لأن فريق HR سيُدخل البيانات يدويًا عبر واجهة بسيطة، بينما الـ Webhook يُفضَّل عند التكامل الآلي مع نظام خارجي مثل ATS.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18: validation logic -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الثاني · خطوة البناء 2</span>
+        <h2>منطق الـ <span class="en">Validation</span></h2>
+        <ul>
+          <li><strong>الحقول الإجبارية (required fields):</strong> رفض أي إدخال ينقصه اسم، email، أو start date.</li>
+          <li><strong>تنسيق الـ email:</strong> فحص عبر regex بسيط، ورفض أي قيمة لا تطابق نمط بريد صالح.</li>
+          <li><strong>منطقية تاريخ البدء (start-date sanity):</strong> رفض تاريخ في الماضي، أو تاريخ بعيد جدًا في المستقبل (مثلًا أكثر من 6 أشهر).</li>
+          <li><strong>عند الرفض:</strong> لا نُسقط البيانات بصمت — نُعيد رسالة واضحة عبر Form/Webhook response توضح تحديدًا أي حقل غير صالح ولماذا.</li>
+        </ul>
+        <div class="code-block">{{ $json.startDate ? ($json.startDate &lt; $now.toISODate() ? 'invalid: past date' : 'ok') : 'invalid: missing' }}</div>
+      </div>
+    </section>
+
+    <!-- 19: sequential vs parallel -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الثاني · خطوة البناء 3</span>
+        <h2>ترتيب الفروع: <span class="en">Sequential</span> أم <span class="en">Parallel</span>؟</h2>
+        <p>ليست كل خطوات الـ Provisioning متساوية في الأولوية — بعضها يعتمد على نتيجة خطوة أخرى، وبعضها مستقل تمامًا.</p>
+        <ol class="step-list">
+          <li>
+            <span class="step-title">Sequential — حساب البريد أولًا</span>
+            إنشاء حساب البريد (email account) يجب أن يكتمل أولًا، لأن خطوة منح صلاحيات الوصول لمجلد الـ Drive (folder permissions) تحتاج إلى الـ email الجديد كمُدخل.
+          </li>
+          <li>
+            <span class="step-title">Parallel — Doc والـ Calendar معًا</span>
+            توليد وثيقة الترحيب (welcome doc) وإنشاء أحداث التقويم (calendar events) لا يعتمدان على بعضهما، فيمكن تشغيلهما في فرعين متوازيين لتقليل الزمن الكلي للتنفيذ.
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 20: common mistakes -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الثاني · البناء</span>
+        <h2>أخطاء شائعة عند بناء أنظمة كهذه</h2>
+        <div class="mistake-grid">
+          <div class="mistake-card">
+            <span class="mistake-icon">1</span>
+            <div>
+              <h3>Silent failures</h3>
+              <p>عقدة تفشل بصمت دون Error Trigger أو أي تنبيه، فلا يكتشف أحد المشكلة إلا بعد شكوى موظف لم يستلم حسابه.</p>
+            </div>
+          </div>
+          <div class="mistake-card">
+            <span class="mistake-icon">2</span>
+            <div>
+              <h3>Validation متأخرة</h3>
+              <p>التحقق من صحة البيانات بعد أن بدأت بالفعل خطوات إنشاء الحسابات، مما يترك آثارًا جانبية جزئية يصعب التراجع عنها.</p>
+            </div>
+          </div>
+          <div class="mistake-card">
+            <span class="mistake-icon">3</span>
+            <div>
+              <h3>Workflow واحد عملاق</h3>
+              <p>بناء كل شيء — من الـ intake حتى الـ notifications — داخل workflow واحد ضخم يصعب قراءته أو تصحيحه أو اختباره بمعزل عن الباقي.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 21: Homework -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الثالث · الختام</span>
+        <h2>الواجب</h2>
+        <ol class="step-list">
+          <li>
+            <span class="step-title">أكمل الفروع غير المنتهية</span>
+            في نظام HR Onboarding، خصوصًا فرع الـ Drive folder وفرع الـ welcome doc.
+          </li>
+          <li>
+            <span class="step-title">اكتب قائمة سيناريوهات الفشل الواقعية</span>
+            لكل حالة فشل ممكنة لهذا النظام، مثل: انقطاع الـ API، تكرار إرسال نفس الـ submission، أو بريد مدير (manager email) غير صحيح.
+          </li>
+          <li>
+            <span class="step-title">صنّف كل سيناريو</span>
+            لكل سيناريو فشل كتبته، حدد: هل يحتاج Retry؟ أم Continue On Fail؟ أم رفض فوري في مرحلة الـ Validation؟
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 22: Next session topics -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء الثالث · الختام</span>
+        <h2>مواضيع الجلسة القادمة</h2>
+        <ul>
+          <li>Human-in-the-loop approvals عبر Wait node.</li>
+          <li>تتبع حالة كل طلب كـ state machine داخل Sheets أو قاعدة بيانات.</li>
+          <li>Sub-workflows بعقود input/output واضحة (input/output contracts).</li>
+          <li>التعامل مع فروقات التوقيت (timezone handling).</li>
+          <li>ربط الـ global error handler فعليًا بكل الـ workflows في النظام.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 23: Quiz Q1 -->
+    <section class="slide" data-quiz-index="0">
+      <div class="slide-card">
+        <span class="eyebrow">اختبار سريع</span>
+        <span class="quiz-progress">السؤال 1 من 6</span>
+        <h2 class="quiz-question">ما الفرق الصحيح بين <span class="en" style="direction:ltr;display:inline-block;">$json</span> و <span class="en" style="direction:ltr;display:inline-block;">$node["NodeName"].json</span>؟</h2>
+        <div class="quiz-options">
+          <button class="quiz-option" data-correct="true">‏$json يشير لبيانات العنصر الحالي في العقدة الحالية، بينما $node["NodeName"].json يسمح بالوصول لبيانات عقدة سابقة محددة بالاسم.</button>
+          <button class="quiz-option" data-correct="false">‏$json يعمل فقط داخل Code node، أما $node لا يعمل إطلاقًا في n8n.</button>
+          <button class="quiz-option" data-correct="false">لا فرق، كلاهما نفس الشيء تمامًا.</button>
+          <button class="quiz-option" data-correct="false">‏$node["NodeName"].json يشير للعنصر الحالي فقط، و$json يشير لكل العناصر.</button>
+        </div>
+        <div class="quiz-explanation">
+          <span class="result-label"></span>
+          <span>‏$json = بيانات الـ item الحالي في السياق الحالي. $node["NodeName"].json = سحب بيانات من عقدة سابقة محددة بالاسم — مفيد عند الحاجة لمعلومة من عقدة أبعد من التي تسبق الحالية مباشرة.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 24: Quiz Q2 -->
+    <section class="slide" data-quiz-index="1">
+      <div class="slide-card">
+        <span class="eyebrow">اختبار سريع</span>
+        <span class="quiz-progress">السؤال 2 من 6</span>
+        <h2 class="quiz-question">كيف نحصل على تاريخ بعد 3 أيام من الآن باستخدام <span class="en" style="direction:ltr;display:inline-block;">$now</span>؟</h2>
+        <div class="quiz-options">
+          <button class="quiz-option" data-correct="false">‏$now + 3</button>
+          <button class="quiz-option" data-correct="true">‏$now.plus({ days: 3 })</button>
+          <button class="quiz-option" data-correct="false">‏$now.addDays(3)</button>
+          <button class="quiz-option" data-correct="false">‏new Date($now) + 3</button>
+        </div>
+        <div class="quiz-explanation">
+          <span class="result-label"></span>
+          <span>‏$now هو كائن Luxon DateTime، لذلك حساب التواريخ يتم عبر دوال Luxon مثل .plus({ days: 3 }) وليس عمليات جمع عادية على أرقام.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 25: Quiz Q3 -->
+    <section class="slide" data-quiz-index="2">
+      <div class="slide-card">
+        <span class="eyebrow">اختبار سريع</span>
+        <span class="quiz-progress">السؤال 3 من 6</span>
+        <h2 class="quiz-question">ما فائدة استخدام <span class="en" style="direction:ltr;display:inline-block;">?.</span> في تعبير مثل <span class="en" style="direction:ltr;display:inline-block;">$json.manager?.email</span>؟</h2>
+        <div class="quiz-options">
+          <button class="quiz-option" data-correct="false">يجعل الكود يعمل أسرع.</button>
+          <button class="quiz-option" data-correct="true">يمنع ظهور خطأ عندما يكون manager غير موجود أو null، ويعيد undefined بدلًا من توقف الـ Workflow.</button>
+          <button class="quiz-option" data-correct="false">يحول القيمة تلقائيًا إلى نص.</button>
+          <button class="quiz-option" data-correct="false">يُستخدم فقط داخل عقدة HTTP Request.</button>
+        </div>
+        <div class="quiz-explanation">
+          <span class="result-label"></span>
+          <span>‏Optional chaining يمنع خطأ التنفيذ عندما تكون إحدى الحلقات الوسيطة في المسار مفقودة أو null، ويعيد undefined بدل إيقاف الـ execution بالكامل.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 26: Quiz Q4 -->
+    <section class="slide" data-quiz-index="3">
+      <div class="slide-card">
+        <span class="eyebrow">اختبار سريع</span>
+        <span class="quiz-progress">السؤال 4 من 6</span>
+        <h2 class="quiz-question">لماذا يجب أن يكون Workflow إنشاء حسابات الموظفين <span class="en" style="direction:ltr;display:inline-block;">Idempotent</span>؟</h2>
+        <div class="quiz-options">
+          <button class="quiz-option" data-correct="false">لتسريع تنفيذ الـ Workflow.</button>
+          <button class="quiz-option" data-correct="false">لأن n8n يطلب ذلك إجباريًا في كل Node.</button>
+          <button class="quiz-option" data-correct="true">لأن الـ Webhook أو إعادة التشغيل اليدوي قد يُشغّل نفس البيانات مرتين، فبدون فحص مسبق سننشئ حسابات وDrive folders مكررة.</button>
+          <button class="quiz-option" data-correct="false">فقط لتقليل استهلاك الـ API credits.</button>
+        </div>
+        <div class="quiz-explanation">
+          <span class="result-label"></span>
+          <span>التشغيل المكرر (retries، إعادة تنفيذ يدوية، إعادة إرسال webhook) وارد جدًا في الإنتاج؛ فحص وجود السجل قبل الإنشاء يمنع الآثار الجانبية المكررة.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 27: Quiz Q5 -->
+    <section class="slide" data-quiz-index="4">
+      <div class="slide-card">
+        <span class="eyebrow">اختبار سريع</span>
+        <span class="quiz-progress">السؤال 5 من 6</span>
+        <h2 class="quiz-question">الـ API يرجع <span class="en" style="direction:ltr;display:inline-block;">503 Service Unavailable</span> بشكل مؤقت، ما الإجراء الصحيح؟</h2>
+        <div class="quiz-options">
+          <button class="quiz-option" data-correct="false">إيقاف الـ Workflow نهائيًا وإرسال تنبيه فقط.</button>
+          <button class="quiz-option" data-correct="true">استخدام Retry with backoff على عقدة HTTP Request لأن الخطأ مؤقت (transient).</button>
+          <button class="quiz-option" data-correct="false">تجاهل الخطأ باستخدام Continue On Fail بدون أي retry.</button>
+          <button class="quiz-option" data-correct="false">تعديل بيانات المستخدم لحل المشكلة.</button>
+        </div>
+        <div class="quiz-explanation">
+          <span class="result-label"></span>
+          <span>‏503 غالبًا خطأ مؤقت (transient) — الاستجابة الصحيحة هي Retry with backoff، بعكس الأخطاء المنطقية/الدائمة التي لا تستفيد من إعادة المحاولة.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 28: Quiz Q6 -->
+    <section class="slide" data-quiz-index="5">
+      <div class="slide-card">
+        <span class="eyebrow">اختبار سريع</span>
+        <span class="quiz-progress">السؤال 6 من 6</span>
+        <h2 class="quiz-question">أين يجب أن تتم عملية <span class="en" style="direction:ltr;display:inline-block;">Validation</span> في نظام HR Onboarding؟</h2>
+        <div class="quiz-options">
+          <button class="quiz-option" data-correct="false">بعد إنشاء الحساب والـ Drive folder، للتأكد من عدم وجود أخطاء لاحقًا.</button>
+          <button class="quiz-option" data-correct="true">مباشرة بعد الـ intake (Form/Webhook) وقبل أي عملية Provisioning، لتفادي آثار جانبية جزئية عند وجود بيانات خاطئة.</button>
+          <button class="quiz-option" data-correct="false">لا داعي لها إذا كان الـ Form يحتوي على حقول إجبارية فقط.</button>
+          <button class="quiz-option" data-correct="false">في نهاية الـ Workflow كخطوة توثيق فقط.</button>
+        </div>
+        <div class="quiz-explanation">
+          <span class="result-label"></span>
+          <span>الـ Validation يجب أن تتم مباشرة بعد الـ intake، قبل أي خطوة Provisioning ذات أثر جانبي — هذا يمنع إنشاء حسابات أو ملفات جزئية بناءً على بيانات خاطئة.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 29: Score slide -->
+    <section class="slide score-slide" id="scoreSlide">
+      <div class="slide-card">
+        <span class="eyebrow">النتيجة النهائية</span>
+        <h2>نتيجتك في الـ Quiz</h2>
+        <div class="score-value" id="scoreValue">0 / 6</div>
+        <p class="score-message" id="scoreMessage"></p>
+        <button class="restart-btn" id="restartQuizBtn">إعادة الاختبار</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="controls">
+    <button class="nav-btn" id="prevBtn">السابق</button>
+    <div class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">29</span></div>
+    <button class="nav-btn" id="nextBtn">التالي</button>
+  </footer>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

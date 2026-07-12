@@ -1,0 +1,133 @@
+{
+  "name": "02 - HR Onboarding - Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "9e4fef97-d71d-43ae-913b-40aceab5ec60",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst workflowName = (data.workflow && data.workflow.name) || 'Unknown workflow';\nconst executionId = (data.execution && data.execution.id) || 'Unknown';\nconst failedNode = (data.execution && data.execution.lastNodeExecuted) || (data.node && data.node.name) || 'Unknown node';\nconst errorMessage = (data.execution && data.execution.error && data.execution.error.message) || (data.error && data.error.message) || 'No message';\nconst executionUrl = (data.execution && data.execution.url) || '';\n\nreturn [{\n  json: {\n    workflow_name: workflowName,\n    execution_id: executionId,\n    failed_node: failedNode,\n    error_message: errorMessage,\n    execution_url: executionUrl,\n  }\n}];"
+      },
+      "id": "9f9c2859-8ae9-4632-a41f-b7cf2c46bfd1",
+      "name": "Format Error Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "REPLACE_WITH_ONCALL_EMAIL@example.com",
+        "subject": "={{ `[n8n ERROR] ${$json.workflow_name}` }}",
+        "message": "={{ `Workflow: ${$json.workflow_name}<br>Execution ID: ${$json.execution_id}<br>Failed node: ${$json.failed_node}<br>Error: ${$json.error_message}<br>Execution URL: ${$json.execution_url}` }}",
+        "options": {}
+      },
+      "id": "33c9a2a5-b26e-42f9-9871-a3fa04fb1855",
+      "name": "Send Alert Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        180
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Gmail - HR Onboarding"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SLACK_CHANNEL_ID",
+          "mode": "id"
+        },
+        "text": "={{ `:rotating_light: *n8n workflow failed*\\nWorkflow: ${$json.workflow_name}\\nExecution: ${$json.execution_id}\\nNode: ${$json.failed_node}\\nError: ${$json.error_message}\\n${$json.execution_url}` }}",
+        "otherOptions": {}
+      },
+      "id": "78fc3fb1-caa6-4e47-8ece-ecf2ffdaf783",
+      "name": "Slack Alert (Disabled)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        380
+      ],
+      "credentials": {
+        "slackApi": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Slack - HR Onboarding"
+        }
+      },
+      "disabled": true,
+      "notes": "Disabled by default. Enable + attach Slack credential to activate."
+    },
+    {
+      "parameters": {
+        "content": "## Global Error Handler (Error Trigger Workflow)\nهذا الـ workflow لا يُشغَّل يدويًا؛ يجب ربطه من إعدادات أي workflow آخر: Workflow Settings -> Error Workflow -> اختر هذا الـ workflow. عند فشل أي execution، يلتقط Error Trigger تفاصيل الفشل (workflow name, execution id, failed node, error message) ويرسل تنبيهًا عبر Gmail. عقدة Slack موجودة وجاهزة لكن Disabled افتراضيًا — فعّلها بعد ربط الـ credential.",
+        "height": 220,
+        "width": 700,
+        "color": 6
+      },
+      "id": "8e90ef84-0fdb-4b43-8f4c-1f6507722738",
+      "name": "Sticky Note 8e90ef84",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -140
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Alert": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Alert (Disabled)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

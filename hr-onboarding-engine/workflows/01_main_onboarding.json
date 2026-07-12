@@ -1,0 +1,1373 @@
+{
+  "name": "01 - HR Onboarding - Main",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hr-onboarding",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8c7d7ae5-1ee3-427e-bc01-32d03d459bb1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "template_folder_id",
+              "value": "REPLACE_WITH_TEMPLATE_DRIVE_FOLDER_ID",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "doc_template_id",
+              "value": "REPLACE_WITH_WELCOME_DOC_TEMPLATE_ID",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "employees_root_folder_id",
+              "value": "REPLACE_WITH_EMPLOYEES_ROOT_FOLDER_ID",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "tracker_spreadsheet_id",
+              "value": "REPLACE_WITH_TRACKER_SPREADSHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "tracker_sheet_name",
+              "value": "Onboarding Tracker",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "hr_alert_email",
+              "value": "hr-team@example.com",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "cd46c262-a3a8-49f2-b243-c0856c63424b",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        20,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst errors = [];\nconst required = ['full_name', 'personal_email', 'role', 'department', 'manager_email', 'start_date', 'timezone'];\n\nfor (const field of required) {\n  if (!data[field] || String(data[field]).trim() === '') {\n    errors.push(`Missing required field: ${field}`);\n  }\n}\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (data.personal_email && !emailRegex.test(data.personal_email)) {\n  errors.push('personal_email is not a valid email address');\n}\nif (data.manager_email && !emailRegex.test(data.manager_email)) {\n  errors.push('manager_email is not a valid email address');\n}\n\nif (data.start_date) {\n  const startDate = DateTime.fromISO(String(data.start_date));\n  if (!startDate.isValid) {\n    errors.push('start_date is not a valid ISO date (expected YYYY-MM-DD)');\n  } else if (startDate.startOf('day') < DateTime.now().startOf('day')) {\n    errors.push('start_date must be today or in the future');\n  }\n}\n\nif (data.timezone) {\n  const tzCheck = DateTime.now().setZone(data.timezone);\n  if (!tzCheck.isValid) {\n    errors.push('timezone is not a valid IANA timezone, e.g. Asia/Riyadh');\n  }\n}\n\nreturn [{\n  json: {\n    ...data,\n    valid: errors.length === 0,\n    errors,\n  }\n}];"
+      },
+      "id": "78a739ff-c3ef-4473-a68d-5218aa2761eb",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-valid",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9184e88b-321e-4db7-aa95-f36acf0ebaa7",
+      "name": "If Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'error', stage: 'validation', errors: $json.errors, received_at: $now.toISO() }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "ef591360-1799-4457-81d3-786db8af22f7",
+      "name": "Respond Validation Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_sheet_name }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "75968b23-1a83-41d1-be3e-b1e1644910ec",
+      "name": "Get All Tracker Rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Sheets - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const target = ($('Validate Input').first().json.personal_email || '').toLowerCase().trim();\nconst rows = $input.all();\nconst match = rows.find(r => (r.json.personal_email || '').toLowerCase().trim() === target);\n\nreturn [{\n  json: {\n    ...$('Validate Input').first().json,\n    already_exists: !!match,\n  }\n}];"
+      },
+      "id": "51550c25-e88d-4a80-b802-e7a77a76c139",
+      "name": "Check Duplicate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-exists",
+              "leftValue": "={{ $json.already_exists }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c1349424-8fab-40cc-9f0b-6966e5c05bc3",
+      "name": "If Already Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'skipped', stage: 'idempotency', message: 'already processed', personal_email: $json.personal_email }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "3969453a-4dcd-41f3-b614-f3fa20d73043",
+      "name": "Respond Already Processed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1340,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_sheet_name }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "received_at": "={{ $now.toISO() }}",
+            "full_name": "={{ $json.full_name }}",
+            "personal_email": "={{ $json.personal_email }}",
+            "role": "={{ $json.role }}",
+            "department": "={{ $json.department }}",
+            "manager_email": "={{ $json.manager_email }}",
+            "start_date": "={{ $json.start_date }}",
+            "timezone": "={{ $json.timezone }}",
+            "validated": true,
+            "provisioned": false,
+            "notified": false,
+            "status": "processing",
+            "drive_folder_url": "",
+            "doc_url": "",
+            "calendar_event_url": "",
+            "notes": ""
+          }
+        },
+        "options": {}
+      },
+      "id": "9b6ced0c-d6dd-49f5-a92a-003e85874fb8",
+      "name": "Append Tracker Row Initial",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1340,
+        280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Sheets - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ `${$json.full_name} - Onboarding` }}",
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.employees_root_folder_id }}",
+          "mode": "id"
+        }
+      },
+      "id": "427e94f0-3258-4ec7-bf4b-2c650318aac7",
+      "name": "Create Employee Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1560,
+        120
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Drive - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "operation": "search",
+        "queryString": "={{ `'${$('Config').item.json.template_folder_id}' in parents and trashed = false` }}",
+        "filter": {},
+        "options": {
+          "returnAll": true
+        }
+      },
+      "id": "dc159786-20f0-446b-b8b1-3525cf3f8588",
+      "name": "List Template Files",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1780,
+        120
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Drive - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "name": "={{ $json.name }}",
+        "options": {
+          "parents": [
+            "={{ $('Create Employee Folder').item.json.id }}"
+          ]
+        }
+      },
+      "id": "dc89e21e-bbf2-4ed8-9ca3-1e95bdbeaa0f",
+      "name": "Copy File To Employee Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2000,
+        120
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Drive - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const employee = $('Append Tracker Row Initial').first().json;\nconst folder = $('Create Employee Folder').first().json;\n\nreturn [{\n  json: {\n    ...employee,\n    drive_folder_id: folder.id,\n    drive_folder_url: folder.webViewLink || `https://drive.google.com/drive/folders/${folder.id}`,\n    template_files_copied: $input.all().length,\n  }\n}];"
+      },
+      "id": "3ccf9717-071f-4479-974f-3a50967e0f56",
+      "name": "Aggregate Folder Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2220,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.doc_template_id }}",
+          "mode": "id"
+        },
+        "name": "={{ `Welcome - ${$json.full_name}` }}",
+        "options": {
+          "parents": [
+            "={{ $json.drive_folder_id }}"
+          ]
+        }
+      },
+      "id": "a8e436fd-9c95-4f69-8fad-2f91e56ca75f",
+      "name": "Copy Welcome Doc Template",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2440,
+        120
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Drive - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": {
+          "__rl": true,
+          "value": "={{ $('Copy Welcome Doc Template').item.json.id }}",
+          "mode": "id"
+        },
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{name}}",
+              "replaceText": "={{ $('Aggregate Folder Result').item.json.full_name }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{role}}",
+              "replaceText": "={{ $('Aggregate Folder Result').item.json.role }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{start_date}}",
+              "replaceText": "={{ $('Aggregate Folder Result').item.json.start_date }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{manager}}",
+              "replaceText": "={{ $('Aggregate Folder Result').item.json.manager_email }}"
+            }
+          ]
+        }
+      },
+      "id": "a8aadd77-5d38-4474-8312-dcf26f62e49f",
+      "name": "Replace Placeholders In Doc",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        120
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Docs - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const employee = $('Aggregate Folder Result').first().json;\nconst doc = $('Copy Welcome Doc Template').first().json;\n\nreturn [{\n  json: {\n    ...employee,\n    doc_id: doc.id,\n    doc_url: doc.webViewLink || `https://docs.google.com/document/d/${doc.id}/edit`,\n  }\n}];"
+      },
+      "id": "4d73b13b-f2ac-4b17-b99b-81b621d2efc3",
+      "name": "Finalize Folder Branch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendar": {
+          "__rl": true,
+          "value": "={{ $json.manager_email }}",
+          "mode": "id"
+        },
+        "start": "={{ $json.start_date + 'T10:00:00' }}",
+        "end": "={{ $json.start_date + 'T10:30:00' }}",
+        "additionalFields": {
+          "summary": "Day 1 welcome meeting",
+          "description": "={{ `Welcome meeting for ${$json.full_name} (${$json.role}, ${$json.department}) on their first day.` }}",
+          "timeZone": "={{ $json.timezone }}"
+        }
+      },
+      "id": "c5a718f2-bb49-468a-a3f0-366a458d0aa8",
+      "name": "Create Calendar Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1560,
+        460
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Calendar - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const employee = $('Append Tracker Row Initial').first().json;\nconst event = $('Create Calendar Event').first().json;\n\nreturn [{\n  json: {\n    ...employee,\n    calendar_event_id: event.id || '',\n    calendar_event_url: event.htmlLink || '',\n  }\n}];"
+      },
+      "id": "c60c84d6-76dc-4319-81f7-d729554c3796",
+      "name": "Finalize Calendar Branch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "d5aabc83-5c94-4a53-8bde-bd3d5c91db40",
+      "name": "Merge Provisioning Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        3100,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_sheet_name }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "personal_email"
+          ],
+          "value": {
+            "personal_email": "={{ $json.personal_email }}",
+            "provisioned": true,
+            "status": "provisioned",
+            "drive_folder_url": "={{ $json.drive_folder_url }}",
+            "doc_url": "={{ $json.doc_url }}",
+            "calendar_event_url": "={{ $json.calendar_event_url }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "ecee0630-0d67-41ba-8a1e-9a6ef28ae18f",
+      "name": "Update Tracker Row Provisioned",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3320,
+        280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Sheets - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.personal_email }}",
+        "subject": "={{ `Welcome to the team, ${$json.full_name}!` }}",
+        "message": "={{ `Hi ${$json.full_name},<br><br>Welcome aboard! Your onboarding folder is ready: ${$json.drive_folder_url}<br>Your welcome document: ${$json.doc_url}<br><br>We look forward to your first day on ${$json.start_date}.` }}",
+        "options": {}
+      },
+      "id": "5b76d143-6d93-4213-8e96-a37fda145317",
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3540,
+        280
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Gmail - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Config').item.json.hr_alert_email }}",
+        "subject": "={{ `Onboarding provisioned: ${$json.full_name}` }}",
+        "message": "={{ `Employee: ${$json.full_name}<br>Role: ${$json.role}<br>Department: ${$json.department}<br>Manager: ${$json.manager_email}<br>Start date: ${$json.start_date}<br>Drive folder: ${$json.drive_folder_url}<br>Welcome doc: ${$json.doc_url}<br>Calendar event: ${$json.calendar_event_url}` }}",
+        "options": {}
+      },
+      "id": "bb80b9b1-7ce7-4d05-9792-9f9bf6a857be",
+      "name": "Send HR Summary Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3760,
+        280
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Gmail - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_sheet_name }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "personal_email"
+          ],
+          "value": {
+            "personal_email": "={{ $json.personal_email }}",
+            "notified": true,
+            "status": "completed"
+          }
+        },
+        "options": {}
+      },
+      "id": "c432aebf-b2be-424e-8456-dd82ca032f47",
+      "name": "Update Tracker Row Notified",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3980,
+        280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Sheets - HR Onboarding"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'success', stage: 'completed', personal_email: $json.personal_email, drive_folder_url: $json.drive_folder_url, doc_url: $json.doc_url, calendar_event_url: $json.calendar_event_url }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "82c5049d-6d0e-42e9-84e5-1313038cf26e",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        4200,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const failedNode = $prevNode.name;\nconst errorItem = $input.first().json;\nconst errorMessage = (errorItem.error && (errorItem.error.message || errorItem.error)) || 'Unknown error';\nconst employee = $('Validate Input').first().json;\n\nreturn [{\n  json: {\n    ...employee,\n    stage: 'pre-provisioning',\n    failed_node: failedNode,\n    error_message: String(errorMessage),\n  }\n}];"
+      },
+      "id": "1be56901-02e2-41f7-9f16-fb7a8e8f422f",
+      "name": "Handle Early Failure",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_sheet_name }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "received_at": "={{ $now.toISO() }}",
+            "full_name": "={{ $json.full_name }}",
+            "personal_email": "={{ $json.personal_email }}",
+            "validated": false,
+            "provisioned": false,
+            "notified": false,
+            "status": "failed",
+            "notes": "={{ `${$json.failed_node}: ${$json.error_message}` }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "82f3453c-e3c0-43b4-9462-c9bafa6f2c05",
+      "name": "Log Early Failure To Tracker",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        640
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Sheets - HR Onboarding"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const failedNode = $prevNode.name;\nconst errorItem = $input.first().json;\nconst errorMessage = (errorItem.error && (errorItem.error.message || errorItem.error)) || 'Unknown error';\nconst employee = $('Append Tracker Row Initial').first().json;\n\nreturn [{\n  json: {\n    ...employee,\n    stage: 'provisioning',\n    failed_node: failedNode,\n    error_message: String(errorMessage),\n  }\n}];"
+      },
+      "id": "e220e40b-fddc-42b8-949e-151f31627aa3",
+      "name": "Handle Provisioning Failure",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2220,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Config').item.json.tracker_sheet_name }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "personal_email"
+          ],
+          "value": {
+            "personal_email": "={{ $json.personal_email }}",
+            "status": "failed",
+            "notes": "={{ `${$json.failed_node}: ${$json.error_message}` }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "24179c2c-4e12-4742-8425-1d5c954fb666",
+      "name": "Update Tracker Row Failure",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2440,
+        640
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_AFTER_IMPORT",
+          "name": "Google Sheets - HR Onboarding"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_NOTIFY_SUBWORKFLOW_ID",
+          "mode": "list",
+          "cachedResultName": "03_notify_subworkflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "email",
+            "to": "={{ $('Config').item.json.hr_alert_email }}",
+            "subject": "={{ `[ALERT] Onboarding failed for ${$json.full_name || 'unknown'}` }}",
+            "body": "={{ `Stage: ${$json.stage}<br>Failed node: ${$json.failed_node}<br>Error: ${$json.error_message}` }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "1557481a-9f26-4222-a03c-4a8ae23ec19a",
+      "name": "Notify Failure",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2660,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'error', stage: $json.stage, failed_node: $json.failed_node, error_message: $json.error_message }) }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "a1d5552b-8851-4414-9397-5380902c9cf1",
+      "name": "Respond Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Intake & Validation\nاستقبال الطلب عبر Webhook، تحميل قيم الإعداد (Config)، ثم Validation: الحقول الإجبارية + email regex + التأكد أن start_date تاريخ مستقبلي صالح. أي فشل يُرجع structured error JSON عبر Respond to Webhook — لا فشل صامت (never fail silently).",
+        "height": 220,
+        "width": 460,
+        "color": 4
+      },
+      "id": "14b191c1-5edb-4401-994e-dff9fc590d2e",
+      "name": "Sticky Note 14b191c1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Idempotency Check\nقبل أي Provisioning، نقرأ Google Sheets 'Onboarding Tracker' كاملة (alwaysOutputData=true لضمان تشغيل Code node حتى لو كانت الورقة فارغة) ونبحث عن personal_email مطابق. إن وُجد → status: already processed ونتوقف. هذا هو أساس الـ Idempotency.",
+        "height": 220,
+        "width": 460,
+        "color": 4
+      },
+      "id": "c7cfd1d6-0a14-4e04-a4f7-cd83590aafc8",
+      "name": "Sticky Note c7cfd1d6",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        680,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Provisioning Fan-out\nالترتيب مهم: Folder يجب أن يكتمل قبل Doc placement (الفرع العلوي، Sequential)، بينما Calendar Event مستقل تمامًا ويعمل بالتوازي (Parallel). كل عقدة خارجية هنا: Retry (3 tries + backoff) و onError=continueErrorOutput موجّه إلى Handle Provisioning Failure.",
+        "height": 200,
+        "width": 900,
+        "color": 5
+      },
+      "id": "c3088d57-a193-434a-ad95-b2c969e5447d",
+      "name": "Sticky Note c3088d57",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Merge + Notifications\nMerge Provisioning Results يجمع مخرجات الفرعين (combine by position) في عنصر واحد، ثم نحدّث Tracker Row (provisioned)، نرسل Welcome Email للموظف وSummary Email لـ HR عبر Gmail node، ثم نحدّث notified، وأخيرًا Respond Success بصيغة JSON.",
+        "height": 220,
+        "width": 900,
+        "color": 3
+      },
+      "id": "21af6dd3-a587-4a5a-acba-00c397f49df5",
+      "name": "Sticky Note 21af6dd3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3100,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Failure Branch\nأي عقدة خارجية فشلت (retry استنفدت 3 محاولات) تدخل هنا: تحديث/تسجيل حالة failed في Tracker، ثم استدعاء 03_notify_subworkflow عبر Execute Workflow، وأخيرًا Respond Failure (JSON, 500) — المستدعي دائمًا يحصل على رد واضح، أبدًا صمت.",
+        "height": 120,
+        "width": 900,
+        "color": 2
+      },
+      "id": "39874eff-f71e-4be4-b9f5-0e24bf809a2a",
+      "name": "Sticky Note 39874eff",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        900,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "If Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Valid?": {
+      "main": [
+        [
+          {
+            "node": "Get All Tracker Rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Tracker Rows": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Early Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate": {
+      "main": [
+        [
+          {
+            "node": "If Already Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Already Exists?": {
+      "main": [
+        [
+          {
+            "node": "Respond Already Processed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append Tracker Row Initial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Tracker Row Initial": {
+      "main": [
+        [
+          {
+            "node": "Create Employee Folder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Calendar Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Early Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Employee Folder": {
+      "main": [
+        [
+          {
+            "node": "List Template Files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Template Files": {
+      "main": [
+        [
+          {
+            "node": "Copy File To Employee Folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy File To Employee Folder": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Folder Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Folder Result": {
+      "main": [
+        [
+          {
+            "node": "Copy Welcome Doc Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy Welcome Doc Template": {
+      "main": [
+        [
+          {
+            "node": "Replace Placeholders In Doc",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Placeholders In Doc": {
+      "main": [
+        [
+          {
+            "node": "Finalize Folder Branch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Folder Branch": {
+      "main": [
+        [
+          {
+            "node": "Merge Provisioning Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendar Event": {
+      "main": [
+        [
+          {
+            "node": "Finalize Calendar Branch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Calendar Branch": {
+      "main": [
+        [
+          {
+            "node": "Merge Provisioning Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Provisioning Results": {
+      "main": [
+        [
+          {
+            "node": "Update Tracker Row Provisioned",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Tracker Row Provisioned": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Send HR Summary Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send HR Summary Email": {
+      "main": [
+        [
+          {
+            "node": "Update Tracker Row Notified",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Tracker Row Notified": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Provisioning Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Early Failure": {
+      "main": [
+        [
+          {
+            "node": "Log Early Failure To Tracker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Early Failure To Tracker": {
+      "main": [
+        [
+          {
+            "node": "Notify Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Provisioning Failure": {
+      "main": [
+        [
+          {
+            "node": "Update Tracker Row Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Tracker Row Failure": {
+      "main": [
+        [
+          {
+            "node": "Notify Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Failure": {
+      "main": [
+        [
+          {
+            "node": "Respond Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
