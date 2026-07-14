@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أساسيات n8n — كل ما تحتاجه قبل بناء الأتمتة والـ AI Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="deck">
+
+  <div class="topbar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <main class="slides" id="slides">
+
+    <!-- 1: Title -->
+    <section class="slide active title-slide">
+      <div class="slide-card">
+        <span class="eyebrow">دورة n8n المتقدمة · محتوى تأسيسي</span>
+        <h1>أساسيات n8n</h1>
+        <div class="title-accent-bar"></div>
+        <p class="subtitle">كل ما يحتاج أي شخص فهمه — داخل n8n وخارجه — قبل بناء أتمتة وAI Agents بمستوى Production</p>
+        <p class="meta-line">APIs · حركة البيانات · أنواع الـ Nodes · AI Agents · أنماط الإنتاج · 4 مشاريع تطبيقية</p>
+      </div>
+    </section>
+
+    <!-- 2: Agenda -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">خطة المحتوى</span>
+        <h2>ماذا سنغطي؟</h2>
+        <ul class="agenda-list">
+          <li>
+            <span class="agenda-part">الجزء 1</span>
+            <span class="agenda-text">ما هي الأتمتة؟ وما هو n8n؟ — المفاهيم الأساسية: Workflow، Node، Execution.</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء 2</span>
+            <span class="agenda-text">أساسيات خارج n8n: كيف تتحرك البيانات، APIs، JSON، Webhooks، والمصادقة (Authentication).</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء 3</span>
+            <span class="agenda-text">أنواع الـ Nodes في n8n: Triggers، Actions، Logic، Data، وكيف تتدفق الـ Items بينها.</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء 4</span>
+            <span class="agenda-text">الـ AI Agents: نموذج اللغة، الأدوات (Tools)، الذاكرة (Memory)، وRAG.</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء 5</span>
+            <span class="agenda-text">جاهزية الإنتاج: Error Handling، Idempotency، المراقبة، وأمان الـ Credentials.</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء 6</span>
+            <span class="agenda-text">الأتمتة حسب المجال: HR، تسويق، عقارات، إرسال بريد، وScraping البيانات وتنظيفها.</span>
+          </li>
+          <li>
+            <span class="agenda-part">الجزء 7</span>
+            <span class="agenda-text">4 مشاريع تطبيقية صغيرة: الشرح، الـ Workflow، والـ Architecture لكل مشروع.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ PART 1: WHAT IS N8N ============ -->
+
+    <!-- 3: What is automation -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 1 · المفاهيم الأساسية</span>
+        <h2>ما هي الأتمتة أصلًا؟</h2>
+        <p class="lead">أي أتمتة في العالم — مهما كانت معقدة — تتكون من نفس الصيغة الثلاثية:</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="صيغة الأتمتة">
+            <defs>
+              <marker id="arrF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="30" y="30" width="240" height="80" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="150" y="65" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Trigger</text>
+            <text x="150" y="90" text-anchor="middle" font-size="13" fill="#64748b">حدث يبدأ التنفيذ</text>
+            <line x1="270" y1="70" x2="325" y2="70" stroke="#0d9488" stroke-width="2" marker-end="url(#arrF)"></line>
+            <rect x="330" y="30" width="240" height="80" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="450" y="65" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Logic</text>
+            <text x="450" y="90" text-anchor="middle" font-size="13" fill="#64748b">قرارات ومعالجة بيانات</text>
+            <line x1="570" y1="70" x2="625" y2="70" stroke="#0d9488" stroke-width="2" marker-end="url(#arrF)"></line>
+            <rect x="630" y="30" width="240" height="80" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="750" y="65" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Action</text>
+            <text x="750" y="90" text-anchor="middle" font-size="13" fill="#64748b">أثر فعلي في العالم</text>
+          </svg>
+        </div>
+        <ul>
+          <li><strong>Trigger:</strong> «وصل بريد جديد»، «الساعة 7 صباحًا»، «زائر أرسل نموذجًا».</li>
+          <li><strong>Logic:</strong> «هل البيانات صحيحة؟»، «هل هذا عميل جديد أم مكرر؟»، «أي قسم يخصّه هذا الطلب؟».</li>
+          <li><strong>Action:</strong> «أرسل بريدًا»، «أضف صفًا في جدول»، «أنشئ مجلدًا»، «نبّه المدير».</li>
+        </ul>
+        <div class="takeaway-box">
+          <span class="why-title">الخلاصة</span>
+          <p>عندما تحلل أي مهمة تريد أتمتتها، اسأل دائمًا: ما الـ Trigger؟ ما القرارات في المنتصف؟ ما الأثر النهائي؟ — هذه العادة الذهنية أهم من أي أداة.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4: What is n8n -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 1 · المفاهيم الأساسية</span>
+        <h2>ما هو n8n؟</h2>
+        <p>أداة أتمتة workflow automation مفتوحة المصدر تتيح ربط مئات الخدمات (Google، Slack، قواعد بيانات، أي API...) عبر واجهة رسم مرئية، مع إمكانية كتابة كود JavaScript عند الحاجة.</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3>لماذا n8n وليس Zapier/Make؟</h3>
+            <p><strong>Self-hosting:</strong> تستضيفه على سيرفرك الخاص — بياناتك لا تغادر بنيتك التحتية، وهذا شرط أساسي لكثير من الشركات.</p>
+            <p><strong>بدون حدود مصطنعة:</strong> لا تدفع لكل عملية تنفيذ، ولا تُقيَّد بعدد خطوات.</p>
+            <p><strong>مرونة الكود:</strong> Code node كامل + HTTP Request لأي API حتى لو لم يكن له تكامل جاهز.</p>
+          </div>
+          <div class="compare-card">
+            <h3>المصطلحات الأساسية</h3>
+            <p><strong>Workflow:</strong> المخطط الكامل — سلسلة العقد المتصلة التي تنفذ مهمة.</p>
+            <p><strong>Node:</strong> خطوة واحدة في الـ workflow (استقبال، معالجة، إرسال...).</p>
+            <p><strong>Execution:</strong> تشغيلة واحدة فعلية للـ workflow — لها سجل كامل يمكن فتحه ومعاينة بيانات كل عقدة فيها.</p>
+            <p><strong>Canvas:</strong> مساحة الرسم التي تبني فيها الـ workflow بالسحب والإفلات.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5: Anatomy of workflow -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 1 · المفاهيم الأساسية</span>
+        <h2>تشريح الـ Workflow: كيف تتحرك البيانات بين العقد؟</h2>
+        <p>كل عقدة تستقبل قائمة من العناصر <strong>(Items)</strong>، تعالجها، ثم تُخرج قائمة items جديدة للعقدة التالية. كل item هو كائن JSON واحد.</p>
+        <div class="before-after">
+          <div class="example-card before">
+            <span class="card-label">ما يخرج من عقدة «قراءة جدول الموظفين»</span>
+            <div class="code-block">[
+  { "name": "Sara",  "dept": "Design" },
+  { "name": "Omar",  "dept": "IT" },
+  { "name": "Lina",  "dept": "HR" }
+]</div>
+          </div>
+          <div class="example-card after">
+            <span class="card-label">العقدة التالية «إرسال بريد» تعمل 3 مرات</span>
+            <div class="code-block">Item 1 → email to Sara
+Item 2 → email to Omar
+Item 3 → email to Lina</div>
+          </div>
+        </div>
+        <div class="why-box">
+          <span class="why-title">القاعدة الذهبية</span>
+          <p>أغلب العقد تنفَّذ <strong>مرة لكل item</strong> تلقائيًا — لا تحتاج حلقة تكرار يدوية. إذا وصلها 100 عنصر، سترسل 100 بريدًا. هذا الفهم يمنع أكثر الأخطاء شيوعًا عند المبتدئين.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PART 2: OUTSIDE N8N FOUNDATIONS ============ -->
+
+    <!-- 6: how data moves -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 2 · أساسيات خارج n8n</span>
+        <h2>كيف تتحرك البيانات على الإنترنت؟</h2>
+        <p class="lead">قبل أي أتمتة، يجب فهم النموذج الأساسي للاتصال: <strong>Request / Response</strong>.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="نموذج الطلب والاستجابة">
+            <defs>
+              <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="40" y="55" width="240" height="90" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="160" y="95" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Client</text>
+            <text x="160" y="120" text-anchor="middle" font-size="13" fill="#64748b">n8n / متصفح / تطبيق</text>
+            <rect x="620" y="55" width="240" height="90" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="740" y="95" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Server</text>
+            <text x="740" y="120" text-anchor="middle" font-size="13" fill="#64748b">خدمة الطقس / Google / أي API</text>
+            <line x1="280" y1="80" x2="615" y2="80" stroke="#0d9488" stroke-width="2" marker-end="url(#arrR)"></line>
+            <text x="450" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#0f766e">Request: «أعطني طقس عمّان اليوم»</text>
+            <line x1="615" y1="125" x2="280" y2="125" stroke="#64748b" stroke-width="2" marker-end="url(#arrR)"></line>
+            <text x="450" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#475569">Response: بيانات JSON + status code</text>
+          </svg>
+        </div>
+        <ul>
+          <li>الـ Client <strong>يسأل دائمًا أولًا</strong> — السيرفر لا يبادر بالإرسال (إلا في حالة الـ Webhooks، وسنصل لها).</li>
+          <li>كل طلب يذهب إلى <strong>عنوان URL</strong> محدد، وكل استجابة تعود مع <strong>Status Code</strong> يلخّص النتيجة.</li>
+          <li>البيانات المتبادلة بين الأنظمة اليوم تكون غالبًا بصيغة <strong>JSON</strong>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 7: APIs -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 2 · أساسيات خارج n8n</span>
+        <h2>ما هو الـ API؟</h2>
+        <p>الـ <strong>API (Application Programming Interface)</strong> هو «باب رسمي» تفتحه خدمة ما ليتعامل معها الكود بدل البشر. الموقع واجهة للإنسان، والـ API واجهة للبرامج — نفس البيانات، بابان مختلفان.</p>
+        <table class="decision-table">
+          <thead>
+            <tr>
+              <th>HTTP Method</th>
+              <th>المعنى</th>
+              <th>مثال واقعي</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>GET</code></td>
+              <td>اقرأ بيانات — بدون أي تعديل</td>
+              <td>جلب حالة الطقس، قراءة قائمة العملاء</td>
+            </tr>
+            <tr>
+              <td><code>POST</code></td>
+              <td>أنشئ شيئًا جديدًا</td>
+              <td>إضافة عميل جديد، إرسال رسالة</td>
+            </tr>
+            <tr>
+              <td><code>PUT / PATCH</code></td>
+              <td>عدّل شيئًا موجودًا</td>
+              <td>تحديث بريد موظف، تغيير حالة طلب</td>
+            </tr>
+            <tr>
+              <td><code>DELETE</code></td>
+              <td>احذف</td>
+              <td>حذف سجل، إلغاء حجز</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="why-box">
+          <span class="why-title">لماذا يهم في n8n؟</span>
+          <p>كل عقدة تكامل في n8n (Gmail، Sheets، Slack...) هي مجرد غلاف جميل حول API. وعندما لا يوجد تكامل جاهز لخدمة ما، عقدة <strong>HTTP Request</strong> تتيح مخاطبة أي API في العالم مباشرة — لذلك من يفهم الـ APIs لا يقف عند حدود قائمة التكاملات أبدًا.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8: JSON -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 2 · أساسيات خارج n8n</span>
+        <h2>JSON — لغة البيانات التي يتكلمها كل شيء</h2>
+        <p><strong>JSON (JavaScript Object Notation)</strong> هو تنسيق نصي بسيط لتمثيل البيانات. كل ما يمر عبر n8n — مدخلات، مخرجات، ردود APIs — هو JSON.</p>
+        <div class="before-after">
+          <div class="example-card before">
+            <span class="card-label">البنية الأساسية</span>
+            <div class="code-block">{
+  "name": "Sara",          <span class="comment">// نص (string)</span>
+  "age": 28,               <span class="comment">// رقم (number)</span>
+  "active": true,          <span class="comment">// منطقي (boolean)</span>
+  "skills": ["n8n", "SQL"] <span class="comment">// مصفوفة (array)</span>
+}</div>
+          </div>
+          <div class="example-card after">
+            <span class="card-label">التداخل (nesting) + الوصول للقيم</span>
+            <div class="code-block">{
+  "employee": {
+    "name": "Sara",
+    "manager": { "email": "ali@corp.com" }
+  }
+}
+<span class="arrow-result">// للوصول لبريد المدير:</span>
+{{ $json.employee.manager.email }}</div>
+          </div>
+        </div>
+        <div class="takeaway-box">
+          <span class="why-title">مهارة عملية أساسية</span>
+          <p>اقرأ أي JSON من الخارج للداخل: كائن ← داخله حقول ← بعض الحقول كائنات أو مصفوفات بدورها. القدرة على النظر إلى استجابة API ضخمة واستخراج «مسار» القيمة المطلوبة هي المهارة الأكثر استخدامًا يوميًا في n8n.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9: Status codes + auth -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 2 · أساسيات خارج n8n</span>
+        <h2>Status Codes والمصادقة (Authentication)</h2>
+        <div class="expr-block">
+          <h3>أكواد الحالة التي ستقابلها يوميًا</h3>
+          <table class="decision-table">
+            <thead>
+              <tr><th>الكود</th><th>المعنى</th><th>ماذا تفعل؟</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>200 / 201</code></td><td>نجاح / تم الإنشاء</td><td>أكمل طبيعيًا</td></tr>
+              <tr><td><code>400</code></td><td>طلبك أنت خاطئ (بيانات ناقصة/غير صالحة)</td><td>صحّح البيانات — الإعادة لن تنفع</td></tr>
+              <tr><td><code>401 / 403</code></td><td>مشكلة مصادقة / صلاحيات</td><td>افحص الـ credential — لا Retry</td></tr>
+              <tr><td><code>429</code></td><td>تجاوزت حد الطلبات (rate limit)</td><td>Retry مع انتظار أطول</td></tr>
+              <tr><td><code>500 / 503</code></td><td>السيرفر نفسه متعطل مؤقتًا</td><td>Retry with backoff</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="expr-block">
+          <h3>طرق المصادقة الشائعة</h3>
+          <ul>
+            <li><strong>API Key:</strong> مفتاح نصي ثابت يُرسل مع كل طلب (في header أو query) — الأبسط والأكثر شيوعًا.</li>
+            <li><strong>Bearer Token:</strong> رمز مؤقت في header بصيغة <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+            <li><strong>OAuth2:</strong> المستخدم يوافق عبر شاشة رسمية (مثل «Sign in with Google») والنظام يحصل على token محدود الصلاحيات قابل للتجديد — هذا ما تستخدمه عقد Google في n8n.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10: Webhooks vs polling -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 2 · أساسيات خارج n8n</span>
+        <h2>Webhook مقابل Polling — كيف نعرف أن شيئًا حدث؟</h2>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3>Polling — «اسأل كل فترة»</h3>
+            <p>n8n يسأل الخدمة بشكل دوري: «هل من جديد؟» عبر Schedule Trigger + طلب GET.</p>
+            <span class="example-label">مثال</span>
+            <p>كل 15 دقيقة: افحص إن كان هناك صف جديد في الجدول.</p>
+            <p><strong>العيب:</strong> تأخير حتى الفحص التالي + طلبات كثيرة بلا فائدة أغلب الوقت.</p>
+          </div>
+          <div class="compare-card">
+            <h3>Webhook — «أخبرني فور الحدوث»</h3>
+            <p>أنت تعطي الخدمة رابط URL خاص بك (يولّده Webhook node)، وهي تستدعيه فورًا عند وقوع الحدث.</p>
+            <span class="example-label">مثال</span>
+            <p>نموذج تسويقي يُرسل بيانات كل Lead جديد للحظة تسجيله.</p>
+            <p><strong>الميزة:</strong> فوري وفعّال — وهو أساس أغلب أنظمة الإنتاج.</p>
+          </div>
+        </div>
+        <div class="why-box">
+          <span class="why-title">تنبيه Production مهم</span>
+          <p>الخدمات المرسلة تُعيد إرسال الـ Webhook عند أي تأخر في الرد (retry behavior) — لذلك أي workflow يبدأ بـ Webhook يجب أن يتحمل استقبال <strong>نفس الطلب مرتين</strong>. هذا بالضبط سبب حاجتنا لمفهوم Idempotency القادم في الجزء الخامس.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PART 3: NODE TYPES ============ -->
+
+    <!-- 11: node categories overview -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 3 · أنواع الـ Nodes</span>
+        <h2>خريطة أنواع العقد في n8n</h2>
+        <p class="lead">مئات العقد في n8n تنتمي كلها إلى 5 عائلات فقط. من يفهم العائلات يستطيع بناء أي شيء:</p>
+        <ul class="agenda-list">
+          <li>
+            <span class="agenda-part">Triggers</span>
+            <span class="agenda-text">تبدأ التنفيذ: Manual، Schedule، Webhook، Form، وTriggers التطبيقات (بريد جديد، صف جديد...).</span>
+          </li>
+          <li>
+            <span class="agenda-part">Actions</span>
+            <span class="agenda-text">تنفّذ أثرًا في خدمة خارجية: Gmail، Google Sheets، Slack، HTTP Request...</span>
+          </li>
+          <li>
+            <span class="agenda-part">Logic</span>
+            <span class="agenda-text">تتحكم بمسار التنفيذ: IF، Switch، Filter، Merge، Wait، Loop.</span>
+          </li>
+          <li>
+            <span class="agenda-part">Data</span>
+            <span class="agenda-text">تعيد تشكيل البيانات نفسها: Set/Edit Fields، Code، Aggregate، Split Out، Remove Duplicates.</span>
+          </li>
+          <li>
+            <span class="agenda-part">AI</span>
+            <span class="agenda-text">عقد الذكاء الاصطناعي: AI Agent، LLM Chain، Embeddings، Vector Stores، Memory.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 12: Trigger nodes -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 3 · أنواع الـ Nodes</span>
+        <h2>عائلة الـ Triggers — من أين يبدأ كل شيء</h2>
+        <table class="decision-table">
+          <thead>
+            <tr><th>العقدة</th><th>متى تستخدمها؟</th><th>مثال</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Manual Trigger</code></td>
+              <td>أثناء التطوير والاختبار فقط</td>
+              <td>تجربة الـ workflow قبل التفعيل</td>
+            </tr>
+            <tr>
+              <td><code>Schedule Trigger</code></td>
+              <td>مهام دورية بوقت معلوم</td>
+              <td>تقرير يومي 7 صباحًا، فحص كل ساعة</td>
+            </tr>
+            <tr>
+              <td><code>Webhook</code></td>
+              <td>استقبال فوري من نظام خارجي</td>
+              <td>Lead جديد من نموذج إعلاني، حدث من نظام ATS</td>
+            </tr>
+            <tr>
+              <td><code>Form Trigger</code></td>
+              <td>إدخال بشري عبر واجهة يولّدها n8n نفسه</td>
+              <td>فريق HR يُدخل بيانات موظف جديد</td>
+            </tr>
+            <tr>
+              <td>App Triggers</td>
+              <td>حدث داخل تطبيق مربوط</td>
+              <td>Gmail Trigger: وصل بريد جديد بمعايير محددة</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="why-box">
+          <span class="why-title">قاعدة اختيار سريعة</span>
+          <p>إدخال بشري → Form. نظام يخاطب نظامًا → Webhook. وقت معلوم → Schedule. حدث داخل تطبيق مدعوم → App Trigger الجاهز أوفر جهدًا من webhook يدوي.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13: Action nodes -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 3 · أنواع الـ Nodes</span>
+        <h2>عائلة الـ Actions — حيث يقع الأثر الفعلي</h2>
+        <p>عقد التكاملات الجاهزة تغطي مئات الخدمات، وكل واحدة تعرض <strong>Operations</strong> متعددة (أرسل، اقرأ، حدّث، احذف...):</p>
+        <ul>
+          <li><strong>Gmail / Send Email:</strong> إرسال بريد — العقدة التي ستستخدمها كل مشاريعنا الأربعة.</li>
+          <li><strong>Google Sheets:</strong> Append / Get / Update rows — أبسط «قاعدة بيانات» للبدء وأداة التتبع الأشهر.</li>
+          <li><strong>Google Drive / Docs / Calendar:</strong> ملفات ومستندات وأحداث — عماد نظام HR Onboarding.</li>
+          <li><strong>Slack / Telegram / WhatsApp:</strong> إشعارات فورية للفرق.</li>
+        </ul>
+        <div class="takeaway-box">
+          <span class="why-title">العقدة الأهم على الإطلاق: HTTP Request</span>
+          <p>عندما لا تجد تكاملًا جاهزًا لخدمة ما، عقدة <strong>HTTP Request</strong> تخاطب أي API مباشرة: تحدد الـ URL والـ Method والـ Headers والـ Body بنفسك. إتقانها = لا حدود لما يمكن ربطه. وهي أيضًا بوابة الـ Scraping التي سنراها في الجزء السادس.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14: Logic nodes -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 3 · أنواع الـ Nodes</span>
+        <h2>عائلة الـ Logic — التحكم بمسار التنفيذ</h2>
+        <table class="decision-table">
+          <thead>
+            <tr><th>العقدة</th><th>ماذا تفعل؟</th><th>مثال</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>IF</code></td>
+              <td>تفرّع ثنائي: true / false</td>
+              <td>هل البريد صالح؟ نعم → أكمل، لا → ارفض برسالة</td>
+            </tr>
+            <tr>
+              <td><code>Switch</code></td>
+              <td>تفرّع متعدد المسارات</td>
+              <td>وجّه الطلب حسب القسم: HR / IT / Finance</td>
+            </tr>
+            <tr>
+              <td><code>Filter</code></td>
+              <td>يُبقي items تحقق شرطًا ويُسقط الباقي</td>
+              <td>أبقِ فقط العقارات تحت 100 ألف</td>
+            </tr>
+            <tr>
+              <td><code>Merge</code></td>
+              <td>يجمع مخرجات فرعين في مسار واحد</td>
+              <td>دمج نتائج Doc والـ Calendar بعد تنفيذهما بالتوازي</td>
+            </tr>
+            <tr>
+              <td><code>Wait</code></td>
+              <td>يُجمّد التنفيذ حتى وقت أو حدث</td>
+              <td>انتظار موافقة المدير (Approval Gate)</td>
+            </tr>
+            <tr>
+              <td><code>Loop Over Items</code></td>
+              <td>معالجة على دفعات محكومة</td>
+              <td>معالجة 500 سجل بدفعات من 50 لتفادي rate limits</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="why-box">
+          <span class="why-title">الفرق بين IF و Filter — سؤال شائع</span>
+          <p>‏IF يقسم المسار لفرعين وكلاهما قد يُكمل بمنطق مختلف. Filter لا يتفرع — فقط يُسقط العناصر غير المطابقة ويكمل بمسار واحد.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15: Data nodes -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 3 · أنواع الـ Nodes</span>
+        <h2>عائلة الـ Data — إعادة تشكيل البيانات نفسها</h2>
+        <table class="decision-table">
+          <thead>
+            <tr><th>العقدة</th><th>ماذا تفعل؟</th><th>مثال</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Set / Edit Fields</code></td>
+              <td>إنشاء أو تعديل حقول بدون كود</td>
+              <td>تجهيز نص رسالة البريد من عدة حقول</td>
+            </tr>
+            <tr>
+              <td><code>Code</code></td>
+              <td>JavaScript كامل عندما يعجز الـ no-code</td>
+              <td>مقارنة قائمتين، تنظيف نصوص معقد</td>
+            </tr>
+            <tr>
+              <td><code>Split Out</code></td>
+              <td>يفكك مصفوفة داخل item واحد إلى items منفصلة</td>
+              <td>استجابة API فيها 20 مقالًا داخل حقل واحد → 20 item</td>
+            </tr>
+            <tr>
+              <td><code>Aggregate</code></td>
+              <td>العكس: يجمع عدة items في item واحد</td>
+              <td>دمج 5 مقالات جديدة في نشرة بريدية واحدة</td>
+            </tr>
+            <tr>
+              <td><code>Remove Duplicates</code></td>
+              <td>إسقاط التكرارات حسب حقل معين</td>
+              <td>إزالة عناوين URL المكررة بعد scraping</td>
+            </tr>
+            <tr>
+              <td><code>Sort / Limit</code></td>
+              <td>ترتيب وتحديد عدد</td>
+              <td>أحدث 10 عقارات فقط في التقرير</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="takeaway-box">
+          <span class="why-title">ثنائية تتكرر في كل مشروع</span>
+          <p><strong>Split Out ثم Aggregate</strong>: فكّك البيانات لتعالج كل عنصر على حدة، ثم أعد تجميعها لإرسال نتيجة واحدة. ستستخدم هذا النمط في مشروع نشرة الـ RSS حرفيًا.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16: Expressions recap -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 3 · أنواع الـ Nodes</span>
+        <h2>الـ Expressions — الغراء الذي يربط كل شيء</h2>
+        <p>أي حقل في أي عقدة يقبل تعبيرًا ديناميكيًا بين <code>{{ }}</code> بدل قيمة ثابتة:</p>
+        <table class="decision-table">
+          <thead>
+            <tr><th>التعبير</th><th>يعطيك</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>{{ $json.email }}</code></td><td>حقل من الـ item الحالي</td></tr>
+            <tr><td><code>{{ $node["Get Manager"].json.email }}</code></td><td>حقل من عقدة سابقة محددة بالاسم</td></tr>
+            <tr><td><code>{{ $now.plus({ days: 3 }).toFormat('yyyy-MM-dd') }}</code></td><td>حسابات تواريخ عبر Luxon</td></tr>
+            <tr><td><code>{{ $json.dept ? $json.dept : 'غير محدد' }}</code></td><td>قيمة شرطية (Ternary)</td></tr>
+            <tr><td><code>{{ $json.manager?.email }}</code></td><td>وصول آمن — undefined بدل خطأ يوقف التنفيذ</td></tr>
+          </tbody>
+        </table>
+        <div class="why-box">
+          <span class="why-title">تذكير</span>
+          <p>هذه المفاهيم مشروحة بالتفصيل مع أمثلة قبل/بعد في عرض الجلسة الأولى (شرائح الـ Expressions المتقدمة) — هذا ملخص مرجعي سريع فقط.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PART 4: AI AGENTS ============ -->
+
+    <!-- 17: LLM basics -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 4 · AI Agents</span>
+        <h2>قبل الـ Agent: ما الذي يفعله نموذج اللغة (LLM) فعلًا؟</h2>
+        <p>الـ <strong>LLM</strong> (مثل GPT أو Claude أو Gemini) يستقبل نصًا (<strong>Prompt</strong>) ويولّد نصًا إكمالًا له. لا يعرف بياناتك الخاصة، ولا «يتذكر» شيئًا بين الطلبات ما لم تُرسل له السياق بنفسك.</p>
+        <ul>
+          <li><strong>Prompt:</strong> التعليمات + البيانات التي ترسلها للنموذج. جودة المخرجات = جودة الـ prompt أولًا.</li>
+          <li><strong>Tokens:</strong> وحدة قياس النص (كلمة ≈ 1–2 token). التكلفة والحدود تُحسب بها.</li>
+          <li><strong>Temperature:</strong> درجة العشوائية — منخفضة للتصنيف والاستخراج، أعلى للكتابة الإبداعية.</li>
+        </ul>
+        <div class="takeaway-box">
+          <span class="why-title">القاعدة الأهم للإنتاج</span>
+          <p>مخرجات الـ LLM <strong>غير مضمونة الشكل</strong>: قد يضيف شرحًا لم تطلبه أو يكسر تنسيق JSON. لذلك في أي أتمتة جادة نطلب منه صيغة JSON محددة ثم <strong>نتحقق منها (validate)</strong> قبل تمريرها لأي خطوة ذات أثر — لا نثق بالمخرجات ثقة عمياء أبدًا.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18: AI Agent node -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 4 · AI Agents</span>
+        <h2>عقدة AI Agent: نموذج + أدوات + ذاكرة</h2>
+        <p class="lead">الفرق بين «نداء LLM عادي» و«Agent»: الـ Agent يستطيع <strong>اتخاذ قرار باستخدام أداة</strong>، قراءة نتيجتها، ثم تقرير الخطوة التالية — في حلقة ذكية.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="مكونات AI Agent">
+            <defs>
+              <marker id="arrA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="330" y="110" width="240" height="90" rx="12" fill="#0d9488" stroke="#0f766e" stroke-width="2"></rect>
+            <text x="450" y="150" text-anchor="middle" font-size="18" font-weight="800" fill="#ffffff">AI Agent</text>
+            <text x="450" y="175" text-anchor="middle" font-size="13" fill="#ccfbf1">يفكر → يختار أداة → يقرأ النتيجة → يكرر</text>
+            <rect x="40" y="30" width="220" height="70" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="150" y="60" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Chat Model</text>
+            <text x="150" y="82" text-anchor="middle" font-size="12" fill="#64748b">العقل: GPT / Claude / Gemini</text>
+            <line x1="260" y1="80" x2="330" y2="130" stroke="#0d9488" stroke-width="2" marker-end="url(#arrA)"></line>
+            <rect x="40" y="210" width="220" height="70" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="150" y="240" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Memory</text>
+            <text x="150" y="262" text-anchor="middle" font-size="12" fill="#64748b">تذكّر سياق المحادثة السابقة</text>
+            <line x1="260" y1="235" x2="330" y2="185" stroke="#0d9488" stroke-width="2" marker-end="url(#arrA)"></line>
+            <rect x="640" y="30" width="220" height="70" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="750" y="60" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Tools</text>
+            <text x="750" y="82" text-anchor="middle" font-size="12" fill="#64748b">بحث، قراءة جدول، نداء API، حساب</text>
+            <line x1="570" y1="130" x2="640" y2="80" stroke="#0d9488" stroke-width="2" marker-end="url(#arrA)"></line>
+            <rect x="640" y="210" width="220" height="70" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="750" y="240" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">System Prompt</text>
+            <text x="750" y="262" text-anchor="middle" font-size="12" fill="#64748b">الشخصية والحدود والتعليمات</text>
+            <line x1="570" y1="185" x2="640" y2="235" stroke="#0d9488" stroke-width="2" marker-end="url(#arrA)"></line>
+          </svg>
+        </div>
+        <p>مثال: عميل يسأل «أين طلبي رقم 4512؟» → الـ Agent يقرر استخدام أداة «بحث في جدول الطلبات» → يقرأ النتيجة → يصيغ ردًا بشريًا مخصصًا. بدون أدوات، كان سيؤلف جوابًا من خياله.</p>
+      </div>
+    </section>
+
+    <!-- 19: RAG -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 4 · AI Agents</span>
+        <h2>RAG — كيف يجيب الـ AI من مستنداتك أنت؟</h2>
+        <p><strong>RAG (Retrieval-Augmented Generation)</strong>: بدل أن يجيب النموذج من معرفته العامة، نُحضر له المقاطع الأكثر صلة من مستنداتنا ونطلب الإجابة منها فقط.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="مخطط RAG">
+            <defs>
+              <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <text x="450" y="25" text-anchor="middle" font-size="14" font-weight="800" fill="#0f766e">مرحلة التجهيز (مرة واحدة)</text>
+            <rect x="40" y="40" width="180" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="130" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">المستندات</text>
+            <text x="130" y="85" text-anchor="middle" font-size="11" fill="#64748b">سياسات، أدلة، عقود</text>
+            <line x1="220" y1="70" x2="262" y2="70" stroke="#0d9488" stroke-width="2" marker-end="url(#arrG)"></line>
+            <rect x="267" y="40" width="180" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="357" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">تقطيع Chunks</text>
+            <text x="357" y="85" text-anchor="middle" font-size="11" fill="#64748b">مقاطع صغيرة متداخلة</text>
+            <line x1="447" y1="70" x2="489" y2="70" stroke="#0d9488" stroke-width="2" marker-end="url(#arrG)"></line>
+            <rect x="494" y="40" width="180" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="584" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Embeddings</text>
+            <text x="584" y="85" text-anchor="middle" font-size="11" fill="#64748b">تحويل المعنى لأرقام</text>
+            <line x1="674" y1="70" x2="716" y2="70" stroke="#0d9488" stroke-width="2" marker-end="url(#arrG)"></line>
+            <rect x="721" y="40" width="150" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="796" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Vector Store</text>
+            <text x="796" y="85" text-anchor="middle" font-size="11" fill="#64748b">قاعدة بحث دلالي</text>
+            <text x="450" y="140" text-anchor="middle" font-size="14" font-weight="800" fill="#0f766e">مرحلة السؤال (كل مرة)</text>
+            <rect x="90" y="155" width="200" height="45" rx="10" fill="#fbfcfd" stroke="#94a3b8" stroke-width="2"></rect>
+            <text x="190" y="183" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">سؤال المستخدم</text>
+            <line x1="290" y1="177" x2="345" y2="177" stroke="#0d9488" stroke-width="2" marker-end="url(#arrG)"></line>
+            <rect x="350" y="155" width="200" height="45" rx="10" fill="#fbfcfd" stroke="#94a3b8" stroke-width="2"></rect>
+            <text x="450" y="183" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">جلب أقرب المقاطع</text>
+            <line x1="550" y1="177" x2="605" y2="177" stroke="#0d9488" stroke-width="2" marker-end="url(#arrG)"></line>
+            <rect x="610" y="155" width="240" height="45" rx="10" fill="#fbfcfd" stroke="#94a3b8" stroke-width="2"></rect>
+            <text x="730" y="183" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">LLM يجيب من المقاطع فقط</text>
+          </svg>
+        </div>
+        <div class="why-box">
+          <span class="why-title">لماذا يهم في الـ Production؟</span>
+          <p>‏RAG يقلل «الهلوسة» ويجعل الإجابات قابلة للتوثيق (من أي مستند جاءت؟). سنبنيه فعليًا في نظام مساعد الدعم الفني (الجلسات 6–7) على مستندات حقيقية.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 20: AI guardrails -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 4 · AI Agents</span>
+        <h2>ضوابط أمان الـ AI في الأتمتة</h2>
+        <ol class="step-list">
+          <li>
+            <span class="step-title">Structured Output + تحقق</span>
+            اطلب من النموذج JSON بمخطط (schema) محدد، ثم افحص الناتج في عقدة تالية: هل الحقول موجودة؟ القيم ضمن المسموح؟ أي مخالفة → مسار fallback، لا متابعة عمياء.
+          </li>
+          <li>
+            <span class="step-title">Human-in-the-loop للقرارات الحساسة</span>
+            أي فعل لا يمكن التراجع عنه (إرسال لعميل، حذف، دفع) يمر ببوابة موافقة بشرية (Wait node / Approval Gate) — الـ AI يقترح، الإنسان يعتمد.
+          </li>
+          <li>
+            <span class="step-title">خطة Fallback دائمًا</span>
+            ماذا لو تعطل مزود الـ LLM أو تجاوز الرد المهلة؟ حدد مسارًا بديلًا: رد افتراضي آمن، تحويل لموظف بشري، أو إعادة محاولة بنموذج آخر.
+          </li>
+          <li>
+            <span class="step-title">حدود التكلفة والاستخدام</span>
+            راقب استهلاك الـ tokens وضع حدودًا — حلقة agent خارجة عن السيطرة قد تكلف كثيرًا في ساعات.
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ PART 5: PRODUCTION ============ -->
+
+    <!-- 21: production pillars -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 5 · جاهزية الإنتاج</span>
+        <h2>أعمدة الـ Production الأربعة</h2>
+        <p class="lead">هذه المفاهيم شُرحت بعمق في الجلسة الأولى — هنا نضعها كخريطة واحدة متكاملة:</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3>1 · Error Handling</h3>
+            <p><strong>Error Trigger Workflow</strong> يلتقط أي فشل غير متوقع وينبّه الفريق. <strong>Continue On Fail</strong> يمنع عنصرًا فاشلًا واحدًا من إيقاف الدفعة. <strong>Retry with Backoff</strong> للأخطاء المؤقتة (503، 429) فقط — لا فائدة منه مع 400 و401.</p>
+          </div>
+          <div class="compare-card">
+            <h3>2 · Idempotency</h3>
+            <p>الـ workflow يجب أن يتحمل التشغيل مرتين بنفس المدخلات دون تكرار الآثار. النمط: <strong>ابحث قبل أن تُنشئ</strong> — افحص سجل التتبع أولًا، وإن وُجد السجل فتخطَّ أو حدّث.</p>
+          </div>
+          <div class="compare-card">
+            <h3>3 · المراقبة والسجلات</h3>
+            <p>سجل تتبع (Sheets/DB) يوثق كل عملية وحالتها، تنبيهات فورية عند الفشل، وسجلات تدقيق (Audit Logs) تجيب لاحقًا: ماذا حدث؟ متى؟ ولماذا؟ — <strong>لا صمت أبدًا</strong>.</p>
+          </div>
+          <div class="compare-card">
+            <h3>4 · أمان الـ Credentials</h3>
+            <p>المفاتيح في مخزن n8n المشفّر فقط — أبدًا داخل Code node أو Sticky Note. أضيق صلاحيات ممكنة (least privilege): صلاحية إرسال بريد فقط لا تحتاج قراءة صندوق الوارد كاملًا.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 22: workflow design habits -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 5 · جاهزية الإنتاج</span>
+        <h2>عادات تصميم تفصل المحترف عن الهاوي</h2>
+        <ol class="step-list">
+          <li>
+            <span class="step-title">Validation دائمًا قبل أي أثر جانبي</span>
+            تحقق من البيانات فور استقبالها — قبل أي إنشاء أو إرسال. بيانات خاطئة تدخلت متأخرًا = آثار جزئية يصعب التراجع عنها.
+          </li>
+          <li>
+            <span class="step-title">رد واضح لكل مسار</span>
+            نجاح، رفض validation، تكرار، فشل — كل مسار ينتهي برد JSON أو رسالة واضحة. الفشل الصامت هو أسوأ أنواع الفشل.
+          </li>
+          <li>
+            <span class="step-title">قسّم الأنظمة الكبيرة إلى Sub-workflows</span>
+            ‏workflow واحد عملاق يصعب اختباره وصيانته. قسّمه لوحدات لكل منها مدخلات ومخرجات واضحة (contract) — مثل الدوال في البرمجة.
+          </li>
+          <li>
+            <span class="step-title">إعدادات مركزية في عقدة Config</span>
+            كل الـ IDs والقيم القابلة للتغيير في عقدة Set واحدة أول الـ workflow — تغيير بيئة العمل يصبح تعديل مكان واحد.
+          </li>
+          <li>
+            <span class="step-title">اختبر مسارات الفشل قبل مسار النجاح</span>
+            جرّب البيانات الناقصة والمكررة والـ API المتعطل — النجاح السعيد يختبر نفسه بنفسه.
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ PART 6: DOMAINS ============ -->
+
+    <!-- 23: domains 1 -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 6 · الأتمتة حسب المجال</span>
+        <h2>نفس الأنماط، مجالات مختلفة — 1</h2>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3>HR — الموارد البشرية</h3>
+            <p><strong>حالات:</strong> Onboarding موظفين (نظامنا الرئيسي)، طلبات إجازات مع موافقات، تذكيرات بانتهاء العقود وفترات التجربة.</p>
+            <p><strong>الأنماط الحاكمة:</strong> Approval Gates (موافقة المدير)، Idempotency (لا حسابات مكررة)، تتبع الحالة لكل موظف في سجل مركزي.</p>
+          </div>
+          <div class="compare-card">
+            <h3>Marketing — التسويق</h3>
+            <p><strong>حالات:</strong> استقبال Leads من النماذج الإعلانية → إثراء بياناتهم (تكبير الصورة عنهم من مصادر أخرى) → تصنيفهم عبر LLM → رسالة أولى مخصصة لكل شريحة.</p>
+            <p><strong>الأنماط الحاكمة:</strong> Webhook انتقال فوري، Deduplication (نفس الشخص من حملتين)، تصنيف LLM بمخرجات JSON مُتحقق منها، ثم Routing حسب الشريحة.</p>
+          </div>
+        </div>
+        <div class="why-box">
+          <span class="why-title">لاحظ النمط المتكرر</span>
+          <p>استقبال → تحقق → إزالة تكرار → إثراء/تصنيف → فعل → تسجيل وتنبيه. تتغير الخدمات والأسماء، لكن الهيكل واحد في كل مجال — هذا جوهر مبدأ «إعادة استخدام الأنماط بين الأنظمة».</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 24: domains 2 -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 6 · الأتمتة حسب المجال</span>
+        <h2>نفس الأنماط، مجالات مختلفة — 2</h2>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3>Real Estate — العقارات</h3>
+            <p><strong>حالات:</strong> تجميع عقارات جديدة من مصادر متعددة (Scraping/APIs)، مطابقتها آليًا مع معايير كل عميل (سعر، منطقة، مساحة)، تنبيه فوري عند فرصة مطابقة، وحجز معاينة بموافقة.</p>
+            <p><strong>الأنماط الحاكمة:</strong> Scheduled scraping + Dedup، منطق مطابقة (Filter/Code)، تنبيهات فورية، Approval Gate للحجز.</p>
+          </div>
+          <div class="compare-card">
+            <h3>Email — البريد كقناة تنفيذ</h3>
+            <p><strong>حالات:</strong> بريد ترحيب مخصص، نشرات مجمعة (digests)، تنبيهات فشل للفريق التقني، وملخصات دورية للإدارة.</p>
+            <p><strong>الأنماط الحاكمة:</strong> بناء النص عبر Expressions من بيانات حية، تجميع قبل الإرسال (بريد واحد مجمّع لا 20 بريدًا)، وRetry على عقدة الإرسال لأن خدمات البريد تتعثر مؤقتًا.</p>
+          </div>
+        </div>
+        <p>الـ AI/Support (مساعد الدعم بـ Agent + RAG) رأيناه في الجزء الرابع — وهو خامس مجالات الدورة الرئيسية.</p>
+      </div>
+    </section>
+
+    <!-- 25: scraping pipeline -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 6 · الأتمتة حسب المجال</span>
+        <h2>‏Scraping البيانات وتنظيفها — الـ Pipeline الكامل</h2>
+        <p>الـ Scraping هو جلب بيانات من مصادر لم تُصمَّم لتعطيك إياها بشكل مرتب. الخط الكامل:</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="خط أنابيب Scraping">
+            <defs>
+              <marker id="arrS" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="30" width="130" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="85" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Fetch</text>
+            <text x="85" y="76" text-anchor="middle" font-size="10" fill="#64748b">HTTP / RSS / API</text>
+            <line x1="150" y1="60" x2="190" y2="60" stroke="#0d9488" stroke-width="2" marker-end="url(#arrS)"></line>
+            <rect x="195" y="30" width="130" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="260" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Parse</text>
+            <text x="260" y="76" text-anchor="middle" font-size="10" fill="#64748b">HTML → حقول</text>
+            <line x1="325" y1="60" x2="365" y2="60" stroke="#0d9488" stroke-width="2" marker-end="url(#arrS)"></line>
+            <rect x="370" y="30" width="130" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="435" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Clean</text>
+            <text x="435" y="76" text-anchor="middle" font-size="10" fill="#64748b">تنسيق وتوحيد</text>
+            <line x1="500" y1="60" x2="540" y2="60" stroke="#0d9488" stroke-width="2" marker-end="url(#arrS)"></line>
+            <rect x="545" y="30" width="130" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="610" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Dedup</text>
+            <text x="610" y="76" text-anchor="middle" font-size="10" fill="#64748b">إسقاط المكرر</text>
+            <line x1="675" y1="60" x2="715" y2="60" stroke="#0d9488" stroke-width="2" marker-end="url(#arrS)"></line>
+            <rect x="720" y="30" width="160" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="800" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Store + Act</text>
+            <text x="800" y="76" text-anchor="middle" font-size="10" fill="#64748b">تخزين ثم تقرير/تنبيه</text>
+          </svg>
+        </div>
+        <ul>
+          <li><strong>Fetch:</strong> الأفضل دائمًا API رسمي أو RSS إن وُجد؛ الـ HTML scraping آخر الحلول (هشّ ويتكسر مع أي تغيير تصميم).</li>
+          <li><strong>Parse:</strong> عقدة HTML Extract (بمحددات CSS) أو Code node لاستخراج الحقول من النص الخام.</li>
+          <li><strong>Clean:</strong> توحيد التنسيقات — «1,000 دينار» و«1000 JOD» يجب أن يصبحا نفس الرقم؛ إزالة مسافات ورموز زائدة؛ حقول فارغة → قيم افتراضية.</li>
+          <li><strong>Dedup:</strong> Remove Duplicates بمعرّف ثابت (URL، رقم إعلان) + مقارنة مع ما خُزّن سابقًا.</li>
+          <li><strong>Store + Act:</strong> التخزين أولًا، ثم الفعل (تقرير، تنبيه، مطابقة) — حتى لا يضيع ما جُمع إن فشل الفعل.</li>
+        </ul>
+        <div class="why-box">
+          <span class="why-title">أخلاقيات وقانون</span>
+          <p>احترم شروط استخدام المواقع وملف robots.txt، لا تُغرق المصدر بالطلبات (فواصل زمنية بين الطلبات)، ولا تجمع بيانات شخصية دون أساس قانوني.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PART 7: MINI PROJECTS ============ -->
+
+    <!-- 26: projects overview -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الجزء 7 · المشاريع التطبيقية</span>
+        <h2>4 مشاريع صغيرة — كلها تُرسل بريدًا، وكلها تبني نحو الأنظمة الكبيرة</h2>
+        <table class="decision-table">
+          <thead>
+            <tr><th>#</th><th>المشروع</th><th>المستوى</th><th>المهارة المحورية</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>نشرة الطقس الصباحية</td>
+              <td><span class="tag retry">سهل</span></td>
+              <td>Schedule + HTTP Request + Expressions</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>إشعار نموذج تواصل</td>
+              <td><span class="tag retry">سهل</span></td>
+              <td>Form + Validation قبل أي أثر</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>نشرة RSS بدون تكرار</td>
+              <td><span class="tag no-retry">أصعب قليلًا</span></td>
+              <td>Idempotency + Aggregate قبل الإرسال</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>استقبال Leads مع فحص التكرار</td>
+              <td><span class="tag no-retry">أصعب قليلًا</span></td>
+              <td>كل أنماط الإنتاج مجتمعة مصغّرة</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="takeaway-box">
+          <span class="why-title">لماذا هذا الترتيب؟</span>
+          <p>كل مشروع يضيف طبقة واحدة جديدة فوق سابقه: جلب بيانات → تحقق → ذاكرة ومنع تكرار → نظام مصغّر متكامل. المشروع الرابع هو «بروفة» مصغّرة لنظام HR Onboarding الكامل.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 27: project 1 -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">مشروع 1 · سهل</span>
+        <h2>نشرة الطقس الصباحية — Daily Weather Digest</h2>
+        <p><strong>الهدف:</strong> كل صباح 7:00، اجلب طقس اليوم من Open-Meteo API (مجاني، بدون مفتاح)، وأرسل بريدًا ملخصًا — مع تحذير مظلة إن كان احتمال المطر مرتفعًا.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="معمارية مشروع الطقس">
+            <defs>
+              <marker id="arrP1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="30" y="25" width="180" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="120" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Schedule Trigger</text>
+            <text x="120" y="70" text-anchor="middle" font-size="11" fill="#64748b">يوميًا 7:00 صباحًا</text>
+            <line x1="210" y1="55" x2="250" y2="55" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP1)"></line>
+            <rect x="255" y="25" width="180" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="345" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">HTTP Request</text>
+            <text x="345" y="70" text-anchor="middle" font-size="11" fill="#64748b">GET → Open-Meteo API</text>
+            <line x1="435" y1="55" x2="475" y2="55" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP1)"></line>
+            <rect x="480" y="25" width="180" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="570" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Set</text>
+            <text x="570" y="70" text-anchor="middle" font-size="11" fill="#64748b">صياغة النص + Ternary</text>
+            <line x1="660" y1="55" x2="700" y2="55" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP1)"></line>
+            <rect x="705" y="25" width="170" height="60" rx="10" fill="#0d9488" stroke="#0f766e" stroke-width="2"></rect>
+            <text x="790" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Send Email</text>
+            <text x="790" y="70" text-anchor="middle" font-size="11" fill="#ccfbf1">النشرة الصباحية</text>
+          </svg>
+        </div>
+        <div class="expr-block">
+          <h3>نقاط البناء المهمة</h3>
+          <ul>
+            <li>الـ HTTP Request يمرر خط الطول/العرض كـ Query Parameters ويطلب <code>daily=temperature_2m_max,precipitation_probability_max</code>.</li>
+            <li>عقدة Set تبني الرسالة من <code>$json</code>، مع Ternary للتحذير الشرطي:</li>
+          </ul>
+          <div class="code-block">{{ $json.daily.precipitation_probability_max[0] > 40
+   ? 'خذ مظلة معك ☔' : 'يوم صافٍ غالبًا ☀️' }}</div>
+          <ul>
+            <li>اختبر يدويًا (Execute Workflow) قبل تفعيل الجدولة — عادة احترافية دائمة.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 28: project 2 -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">مشروع 2 · سهل</span>
+        <h2>إشعار نموذج تواصل — Contact Form Notifier</h2>
+        <p><strong>الهدف:</strong> نموذج تواصل (اسم، بريد، رسالة) → تحقق من البيانات → بريد فوري لصاحب الموقع، أو رسالة رفض واضحة تحدد الحقل المشكلة.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="معمارية مشروع نموذج التواصل">
+            <defs>
+              <marker id="arrP2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="30" y="65" width="170" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="115" y="90" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Form Trigger</text>
+            <text x="115" y="110" text-anchor="middle" font-size="11" fill="#64748b">اسم · بريد · رسالة</text>
+            <line x1="200" y1="95" x2="240" y2="95" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP2)"></line>
+            <rect x="245" y="65" width="170" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="330" y="90" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">IF — Validation</text>
+            <text x="330" y="110" text-anchor="middle" font-size="11" fill="#64748b">حقول + regex للبريد</text>
+            <line x1="415" y1="80" x2="480" y2="45" stroke="#16a34a" stroke-width="2" marker-end="url(#arrP2)"></line>
+            <text x="450" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#16a34a">true</text>
+            <rect x="485" y="15" width="180" height="60" rx="10" fill="#0d9488" stroke="#0f766e" stroke-width="2"></rect>
+            <text x="575" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Send Email</text>
+            <text x="575" y="60" text-anchor="middle" font-size="11" fill="#ccfbf1">إشعار بمحتوى الرسالة</text>
+            <line x1="665" y1="45" x2="705" y2="45" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP2)"></line>
+            <rect x="710" y="15" width="160" height="60" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="790" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Form Response</text>
+            <text x="790" y="60" text-anchor="middle" font-size="11" fill="#64748b">«استلمنا رسالتك»</text>
+            <line x1="415" y1="110" x2="480" y2="145" stroke="#dc2626" stroke-width="2" marker-end="url(#arrP2)"></line>
+            <text x="450" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#dc2626">false</text>
+            <rect x="485" y="115" width="280" height="60" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"></rect>
+            <text x="625" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">رفض واضح — أي حقل ولماذا</text>
+            <text x="625" y="160" text-anchor="middle" font-size="11" fill="#b91c1c">لا بريد يُرسل، لا رفض صامت</text>
+          </svg>
+        </div>
+        <div class="why-box">
+          <span class="why-title">الدرس المحوري</span>
+          <p>لاحظ مكان Send Email: <strong>بعد</strong> الـ Validation في مسار true فقط. التحقق قبل أي أثر جانبي — نفس القاعدة الذهبية من عرض الجلسة الأولى، بأصغر مثال ممكن.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 29: project 3 -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">مشروع 3 · أصعب قليلًا</span>
+        <h2>نشرة RSS بدون تكرار — RSS Digest with Deduplication</h2>
+        <p><strong>الهدف:</strong> يوميًا: اقرأ مقالات من RSS، استبعد ما أُرسل سابقًا (Google Sheet كذاكرة)، أرسل بريدًا واحدًا مجمّعًا بالجديد فقط، ثم سجّل ما أرسلته.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="معمارية مشروع RSS">
+            <defs>
+              <marker id="arrP3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="20" width="160" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="100" y="43" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Schedule Trigger</text>
+            <text x="100" y="62" text-anchor="middle" font-size="10" fill="#64748b">يوميًا</text>
+            <line x1="180" y1="47" x2="215" y2="47" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP3)"></line>
+            <rect x="220" y="20" width="160" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="300" y="43" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">RSS Feed Read</text>
+            <text x="300" y="62" text-anchor="middle" font-size="10" fill="#64748b">أحدث المقالات</text>
+            <line x1="380" y1="47" x2="415" y2="47" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP3)"></line>
+            <rect x="420" y="20" width="180" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="510" y="43" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Sheets: Get rows</text>
+            <text x="510" y="62" text-anchor="middle" font-size="10" fill="#64748b">الروابط المُرسلة سابقًا</text>
+            <line x1="600" y1="47" x2="635" y2="47" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP3)"></line>
+            <rect x="640" y="20" width="240" height="55" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"></rect>
+            <text x="760" y="43" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">Code: فلترة الجديد فقط</text>
+            <text x="760" y="62" text-anchor="middle" font-size="10" fill="#c2410c">فحص Idempotency — ابحث قبل أن ترسل</text>
+            <line x1="760" y1="75" x2="760" y2="110" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP3)"></line>
+            <rect x="660" y="115" width="200" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="760" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">IF: يوجد جديد؟</text>
+            <text x="760" y="157" text-anchor="middle" font-size="10" fill="#64748b">لا → توقف نظيف بدون بريد فارغ</text>
+            <line x1="660" y1="142" x2="620" y2="142" stroke="#16a34a" stroke-width="2" marker-end="url(#arrP3)"></line>
+            <rect x="440" y="115" width="175" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="527" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Aggregate</text>
+            <text x="527" y="157" text-anchor="middle" font-size="10" fill="#64748b">كل الجديد في نص واحد</text>
+            <line x1="440" y1="142" x2="400" y2="142" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP3)"></line>
+            <rect x="225" y="115" width="170" height="55" rx="10" fill="#0d9488" stroke="#0f766e" stroke-width="2"></rect>
+            <text x="310" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Send Email</text>
+            <text x="310" y="157" text-anchor="middle" font-size="10" fill="#ccfbf1">نشرة واحدة مجمّعة</text>
+            <line x1="225" y1="142" x2="185" y2="142" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP3)"></line>
+            <rect x="15" y="115" width="165" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="97" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Sheets: Append</text>
+            <text x="97" y="157" text-anchor="middle" font-size="10" fill="#64748b">سجّل الروابط الجديدة</text>
+            <text x="450" y="215" text-anchor="middle" font-size="12" fill="#64748b" font-weight="700">الجدول = «ذاكرة» النظام بين التشغيلات — نفس دور Onboarding Tracker في نظام HR</text>
+          </svg>
+        </div>
+        <ul>
+          <li><strong>لماذا Code node للفلترة؟</strong> نقارن روابط المقالات الجديدة بقائمة الروابط المخزنة — مقارنة قائمتين تحتاج منطقًا يتجاوز الـ Filter البسيط.</li>
+          <li><strong>لماذا Aggregate قبل الإرسال؟</strong> بريد واحد منظم أفضل من 15 بريدًا متتاليًا — نفس منطق الإشعارات المجمّعة في الأنظمة الكبيرة.</li>
+          <li><strong>ترتيب مقصود:</strong> الإرسال ثم التسجيل — إن فشل الإرسال لا نسجل المقالات كمُرسلة، فتُعاد المحاولة غدًا تلقائيًا.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 30: project 4 -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">مشروع 4 · أصعب قليلًا</span>
+        <h2>استقبال Leads مع فحص التكرار — Lead Capture</h2>
+        <p><strong>الهدف:</strong> ‏Webhook يستقبل Lead (اسم، بريد، شركة) → تحقق → فحص تكرار في جدول العملاء → تسجيل + بريد ترحيب مخصص (بـ Retry) → رد JSON واضح لكل مسار.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="معمارية مشروع Leads">
+            <defs>
+              <marker id="arrP4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="30" width="150" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="95" y="53" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Webhook</text>
+            <text x="95" y="72" text-anchor="middle" font-size="10" fill="#64748b">POST — بيانات Lead</text>
+            <line x1="170" y1="57" x2="205" y2="57" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP4)"></line>
+            <rect x="210" y="30" width="150" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="285" y="53" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Validation</text>
+            <text x="285" y="72" text-anchor="middle" font-size="10" fill="#64748b">حقول + صيغة بريد</text>
+            <line x1="285" y1="85" x2="285" y2="120" stroke="#dc2626" stroke-width="2" marker-end="url(#arrP4)"></line>
+            <rect x="185" y="125" width="200" height="50" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"></rect>
+            <text x="285" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">Respond: 400 error</text>
+            <text x="285" y="164" text-anchor="middle" font-size="10" fill="#b91c1c">أي حقل غير صالح ولماذا</text>
+            <line x1="360" y1="57" x2="395" y2="57" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP4)"></line>
+            <rect x="400" y="30" width="170" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="485" y="53" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Sheets: Search</text>
+            <text x="485" y="72" text-anchor="middle" font-size="10" fill="#64748b">هل البريد موجود؟</text>
+            <line x1="485" y1="85" x2="485" y2="120" stroke="#ea580c" stroke-width="2" marker-end="url(#arrP4)"></line>
+            <rect x="385" y="125" width="200" height="50" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"></rect>
+            <text x="485" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="#9a3412">Respond: duplicate</text>
+            <text x="485" y="164" text-anchor="middle" font-size="10" fill="#c2410c">لا صف جديد، لا بريد — Idempotency</text>
+            <line x1="570" y1="57" x2="605" y2="57" stroke="#16a34a" stroke-width="2" marker-end="url(#arrP4)"></line>
+            <rect x="610" y="30" width="130" height="55" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"></rect>
+            <text x="675" y="53" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Sheets: Append</text>
+            <text x="675" y="72" text-anchor="middle" font-size="10" fill="#64748b">تسجيل الـ Lead</text>
+            <line x1="740" y1="57" x2="775" y2="57" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP4)"></line>
+            <rect x="780" y="30" width="110" height="55" rx="10" fill="#0d9488" stroke="#0f766e" stroke-width="2"></rect>
+            <text x="835" y="53" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Send Email</text>
+            <text x="835" y="72" text-anchor="middle" font-size="9" fill="#ccfbf1">Retry ×3 backoff</text>
+            <line x1="835" y1="85" x2="835" y2="120" stroke="#0d9488" stroke-width="2" marker-end="url(#arrP4)"></line>
+            <rect x="720" y="125" width="170" height="50" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"></rect>
+            <text x="805" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">Respond: success</text>
+            <text x="805" y="164" text-anchor="middle" font-size="10" fill="#15803d">رد JSON واضح</text>
+            <text x="450" y="230" text-anchor="middle" font-size="12" fill="#64748b" font-weight="700">ثلاثة مسارات، ثلاثة ردود واضحة — لا صمت أبدًا. هذا مصغّر حرفي لبنية نظام HR Onboarding</text>
+          </svg>
+        </div>
+        <ul>
+          <li><strong>Retry على Send Email فقط:</strong> خدمة البريد قد تتعثر مؤقتًا (خطأ transient) — 3 محاولات بفاصل متضاعف. لكن لا Retry على الـ Validation: البيانات الخاطئة ستبقى خاطئة.</li>
+          <li><strong>Optional Chaining في نص الرسالة:</strong> <code>{{ $json.company?.name }}</code> — الشركة حقل اختياري ولا يجوز أن يكسر الإرسال.</li>
+          <li><strong>اختبار إلزامي بـ 3 حالات:</strong> بيانات صالحة، بيانات ناقصة، ونفس البريد مرتين — الثالثة تثبت أن الـ Idempotency يعمل فعلًا.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 31: closing -->
+    <section class="slide">
+      <div class="slide-card">
+        <span class="eyebrow">الختام</span>
+        <h2>من هنا إلى الأنظمة الخمسة الكبيرة</h2>
+        <p class="lead">كل ما رأيته اليوم هو الأساس الذي تقف عليه أنظمة الدورة الخمسة:</p>
+        <ul class="agenda-list">
+          <li>
+            <span class="agenda-part">1 · HR</span>
+            <span class="agenda-text">نظام Onboarding — يبدأ من الجلسة 1–2: نفس بنية المشروع 4 لكن مع Provisioning متعدد الفروع وApproval Gates.</span>
+          </li>
+          <li>
+            <span class="agenda-part">2 · Data</span>
+            <span class="agenda-text">‏Scraping وتقارير السوق — pipeline الجزء السادس كاملًا مع تنبيهات وAudit Logs (الجلسة 3).</span>
+          </li>
+          <li>
+            <span class="agenda-part">3 · Marketing</span>
+            <span class="agenda-text">‏Leads → إثراء → تواصل مخصص — المشروع 4 موسّعًا بتصنيف LLM وRouting (الجلسات 4–5).</span>
+          </li>
+          <li>
+            <span class="agenda-part">4 · AI/Support</span>
+            <span class="agenda-text">مساعد دعم فني — الـ Agent والـ RAG من الجزء الرابع على مستندات حقيقية (الجلسات 6–7).</span>
+          </li>
+          <li>
+            <span class="agenda-part">5 · Real Estate</span>
+            <span class="agenda-text">مطابقة عقارات وحجز معاينات — يجمع كل الأنماط السابقة في نظام واحد (الجلسة 8).</span>
+          </li>
+        </ul>
+        <div class="takeaway-box">
+          <span class="why-title">الفكرة الأخيرة</span>
+          <p>لن تتعلم أداة — ستتعلم <strong>أنماطًا</strong>: تحقق قبل الأثر، ابحث قبل الإنشاء، أعد المحاولة للمؤقت فقط، لا تصمت عند الفشل. الأداة تتغير، الأنماط تبقى.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="controls">
+    <button class="nav-btn" id="prevBtn">السابق</button>
+    <div class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">31</span></div>
+    <button class="nav-btn" id="nextBtn">التالي</button>
+  </footer>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
